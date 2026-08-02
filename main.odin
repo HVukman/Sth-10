@@ -10,21 +10,75 @@ STANDARD_TITLE :: "STH-10 GAME"
 
 
 main_loop :: proc( ) {
-	rl.InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, STANDARD_TITLE)
 
+	succ:= lua.L_loadfile(L,program)
+
+
+
+	if succ != lua.Status.ERRFILE{
+
+		if lua.pcall(L, 0, 0, 0) != 0 {
+			err_msg = lua.tostring(L, 1)
+			lua.pop(L, 1)
+			fmt.println(" File cannot be loaded ")
+			return
+		}
+
+	rl.InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, STANDARD_TITLE)
 	defer rl.CloseWindow()
+
+	lua.getglobal(L, cstring("init"))
+		if lua.isfunction(L, -1) {
+			if lua.pcall(L, 0, 0, 0) != 0 {
+				err_msg = lua.tostring(L, 1)
+				lua.pop(L, 1)
+				fmt.println(" No init found in file :", lua.tostring(L, -1))
+
+			}
+		}
+
+
+
 	for !rl.WindowShouldClose() {
+		if err_msg == ""{
+			lua.getglobal(L, cstring("update"))
+				if lua.isfunction(L, -1) {
+					if lua.pcall(L, 0, 0, 0) != 0 {
+						err_msg = lua.tostring(L, 1)
+						lua.pop(L, 1)
+						fmt.println(" No init found in file :", lua.tostring(L, -1))
+
+					}
+				}
+		}
+		if err_msg == ""{
+			lua.getglobal(L, cstring("draw"))
+				if lua.isfunction(L, -1) {
+					if lua.pcall(L, 0, 0, 0) != 0 {
+						err_msg = lua.tostring(L, 1)
+						lua.pop(L, 1)
+						fmt.println(" No init found in file :", lua.tostring(L, -1))
+
+					}
+				}
+		}
 		rl.BeginDrawing()
-		rl.ClearBackground(rl.RAYWHITE)
+
+		rl.ClearBackground(rl.BLACK)
 		rl.EndDrawing()
 
 	}
-
+	}
 }
+
+L : ^lua.State
+program : cstring
+err_msg : cstring
 
 main :: proc ( ) {
 
-	L := lua.L_newstate(); // Create a new Lua state
+	program = "main.lua"
+	L = lua.L_newstate(); // Create a new Lua state
     defer lua.close(L); // Clean up later
 
     if L == nil {
@@ -33,5 +87,12 @@ main :: proc ( ) {
         }
 
     lua.L_openlibs(L); // Load Lua standard libraries
+    lua.L_requiref(L, "shapes" , lua_openshapes,0)
+    lua.L_requiref(L, "colors" , luacolor_open ,0)
+    lua.L_requiref(L, "draw" , lua_opendraw  ,0)
+    // register functions
+	register(L)
+
+
 	main_loop()
 }
