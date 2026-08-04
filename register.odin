@@ -8,5 +8,5 @@ register :: proc (L: ^lua.State) {
 
 
 	lua.L_openlibs(L); // Load Lua standard libraries
-	lua.register(L, "draw_point", l_draw_point )
+
 }

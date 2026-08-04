@@ -24,6 +24,30 @@ triangle :: struct {
 	p3:point,
 }
 
+Ellipse :: struct{
+	centerx: int,
+	centery: int,
+	radiush : f32,
+	radiusv : f32,
+}
+
+Ring :: struct{
+	center : point,
+	inner_radius: f32,
+	outer_radius : f32,
+	start_angle : f32,
+	end_angle: f32,
+	segments :int,
+}
+
+Polygon :: struct{
+	center : point,
+	sides :int,
+	radius: f32,
+	rotation : f32,
+
+}
+
 mat2 :: distinct matrix[2, 2]f32
 mat4 :: distinct matrix[4, 4]f32
 
@@ -33,6 +57,16 @@ PointArray :: struct {
     data: rawptr,  // pointer to pixel data
 }
 
+CircleArray :: struct {
+    size: int,
+    data: rawptr,  // pointer to circle data
+}
+
+RectangleArray :: struct {
+    size: int,
+    data: rawptr,  // pointer to rectangle
+}
+
 // array string
 //
 pointarray_string :: proc "c" (L: ^lua.State) -> i32 {
@@ -40,9 +74,51 @@ pointarray_string :: proc "c" (L: ^lua.State) -> i32 {
 	context = runtime.default_context()
     a := cast(^PointArray)lua.L_checkudata(L,1,"PointArrayMT")
     points := cast([^]point)a.data
+
+
     new_str := fmt.tprintf(" PointArray of Len %i " , a.size)
     lua.pushstring(L, strings.clone_to_cstring(new_str))
 	return 1
+}
+
+// array size
+//
+pointarray_index :: proc "c" (L: ^lua.State) -> i32 {
+
+    a := cast(^PointArray)lua.L_checkudata(L,1,"PointArrayMT")
+    index:= lua.L_checkinteger(L, 2)
+
+    point_:= cast(^point)lua.newuserdata(L, size_of(point))
+
+    points := cast([^]point)a.data
+    p := points[index - 1]
+
+
+    result := cast(^point)lua.newuserdata(L, size_of(point))
+        result.x = p.x
+        result.y = p.y
+        lua.L_setmetatable(L, "PointMT")
+        return 1
+
+}
+
+// Set a point in the array
+pointarray_set :: proc "c" (L: ^lua.State) -> i32 {
+    context = runtime.default_context()
+    a := cast(^PointArray)lua.L_checkudata(L, 1, "PointArrayMT")
+    index := int(lua.L_checkinteger(L, 2))
+
+    if index < 1 || index > a.size {
+        lua.L_error(L, "index out of bounds: %d (size: %d)", index, a.size)
+        return 0
+    }
+
+    x := lua.L_checknumber(L, 3)
+    y := lua.L_checknumber(L, 4)
+
+    points := cast([^]point)a.data
+    points[index - 1] = point{f32(x), f32(y)}
+    return 0
 }
 
 // array size
@@ -194,18 +270,93 @@ lua_point_eq :: proc "c" (L: ^lua.State) -> i32 {
     return 1
 }
 
+// Get rectangle field (__index)
+lua_getrectindex :: proc "c" (L: ^lua.State) -> i32 {
+    context = runtime.default_context()
+    rect_ := cast(^rectangle)lua.L_checkudata(L, 1, "RectMT")
+    ind := lua.L_checkstring(L, 2)
+
+    switch ind {
+    case "x":
+        lua.pushnumber(L, lua.Number(rect_.x))
+        return 1
+    case "y":
+        lua.pushnumber(L, lua.Number(rect_.y))
+        return 1
+    case "width":
+        lua.pushnumber(L, lua.Number(rect_.width))
+        return 1
+    case "height":
+        lua.pushnumber(L, lua.Number(rect_.height))
+        return 1
+    case:
+        lua.pushnil(L)
+        return 1
+    }
+}
+
+// Set rectangle field (__newindex)
+lua_setrect :: proc "c" (L: ^lua.State) -> i32 {
+    context = runtime.default_context()
+    rect_ := cast(^rectangle)lua.L_checkudata(L, 1, "RectangleMT")
+    ind := lua.L_checkstring(L, 2)
+    val := lua.L_checknumber(L, 3)
+
+    switch ind {
+    case "x":
+        rect_.x = f32(val)
+    case "y":
+        rect_.y = f32(val)
+    case "width":
+        rect_.width = f32(val)
+    case "height":
+        rect_.height = f32(val)
+    case:
+        lua.L_error(L, "invalid field: %s", ind)
+        return 0
+    }
+    return 0
+}
+
+// __tostring for rectangle
+lua_rect_tostring :: proc "c" (L: ^lua.State) -> i32 {
+    context = runtime.default_context()
+    rect_ := cast(^rectangle)lua.L_checkudata(L, 1, "RectangleMT")
+
+    buf: [128]byte
+    result := fmt.bprintf(buf[:], "Rect(x=%.2f, y=%.2f, w=%.2f, h=%.2f)",
+                          rect_.x, rect_.y, rect_.width, rect_.height)
+    lua.pushstring(L, strings.clone_to_cstring(result))
+    return 1
+}
+
+
+
+// rectangle meta table
+rect_meta := []lua.L_Reg{
+
+    {"__index", lua_getrectindex},
+    {"__newindex", lua_setrect},
+    {"__tostring", lua_rect_tostring},
+    {"size", pointarray_size},
+    {"get", pointarray_index  },
+    {"set", pointarray_set  },
+    {nil, nil},
+}
+
 pointarray_methods := []lua.L_Reg{
     {"size", pointarray_size},
-
+    {"get", pointarray_index  },
+    {"set", pointarray_set  },
     {nil, nil},
 }
 
 pointarray_meta := []lua.L_Reg{
 	{"size", pointarray_size},
-	  {"__index", nil},  // Will be set to pointarray_methods
+	{"__index", nil},  // Will be set to pointarray_methods
 	{"__tostring", pointarray_string},
-/*    {"__index", lua_getpointindex  },
-    {"__newindex",  lua_setpoint},
+
+/*    {"__newindex",  lua_setpoint},
     {"__add", lua_point_add},
     {"__sub", lua_point_sub},
     {"__mul", lua_point_mul},
@@ -227,6 +378,7 @@ point_meta := []lua.L_Reg{
 
 shapeslib := []lua.L_Reg{
     {"newpoint",  lua_newpoint},
+    {"newrectangle",  lua_newrectangle},
     {"newpointarray", pointarray_new},
     {nil, nil},
 }
@@ -247,6 +399,27 @@ lua_newpoint :: proc "c" (L: ^lua.State) -> i32  {
 	return 1
 }
 
+// create new rectangle
+lua_newrectangle :: proc "c" (L: ^lua.State) -> i32  {
+
+	context = runtime.default_context()
+	x := lua.L_checknumber(L,1)
+	y := lua.L_checknumber(L,2)
+	w := lua.L_checknumber(L,3)
+	h := lua.L_checknumber(L,4)
+
+
+	v:= cast(^rectangle)lua.newuserdata(L, size_of(rectangle))
+	v.x = f32(x)
+	v.y = f32(y)
+	v.width = f32(w)
+	v.height = f32(h)
+
+	// userdata is already on the Lua stack
+	lua.L_setmetatable(L, "RectangleMT")
+	return 1
+}
+
 lua_openshapes :: proc "c" (L: ^lua.State) -> i32  {
 
 	context = runtime.default_context()
@@ -260,9 +433,16 @@ lua_openshapes :: proc "c" (L: ^lua.State) -> i32  {
     lua.L_newlib(L, pointarray_methods)
     lua.setfield(L, -2, "__index")
 
+
     // Set __tostring
     lua.pushcfunction(L, pointarray_string)
     lua.setfield(L, -2, "__tostring")
+
+
+
+        lua.L_newmetatable(L, "RectangleMT")
+        lua.L_setfuncs(L, raw_data(rect_meta), 0)
+        lua.pop(L, 1)
 
 	lua.L_newlib(L, shapeslib)
 

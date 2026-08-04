@@ -13,16 +13,14 @@ main_loop :: proc( ) {
 
 	succ:= lua.L_loadfile(L,program)
 
-
-
 	if succ != lua.Status.ERRFILE{
-
 		if lua.pcall(L, 0, 0, 0) != 0 {
 			err_msg = lua.tostring(L, 1)
 			lua.pop(L, 1)
 			fmt.println(" File cannot be loaded ")
 			return
 		}
+
 
 	rl.InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, STANDARD_TITLE)
 	defer rl.CloseWindow()
@@ -41,30 +39,37 @@ main_loop :: proc( ) {
 
 	for !rl.WindowShouldClose() {
 		if err_msg == ""{
+
 			lua.getglobal(L, cstring("update"))
 				if lua.isfunction(L, -1) {
+
 					if lua.pcall(L, 0, 0, 0) != 0 {
 						err_msg = lua.tostring(L, 1)
 						lua.pop(L, 1)
-						fmt.println(" No init found in file :", lua.tostring(L, -1))
-
+						fmt.println(" No update found in file :", lua.tostring(L, -1))
+						break
 					}
 				}
 		}
+
 		if err_msg == ""{
+
 			lua.getglobal(L, cstring("draw"))
 				if lua.isfunction(L, -1) {
+
 					if lua.pcall(L, 0, 0, 0) != 0 {
 						err_msg = lua.tostring(L, 1)
+						fmt.println(err_msg)
 						lua.pop(L, 1)
-						fmt.println(" No init found in file :", lua.tostring(L, -1))
-
+						fmt.println(" No draw found in file ", lua.tostring(L, -1))
+						return
 					}
 				}
-		}
-		rl.BeginDrawing()
 
-		rl.ClearBackground(rl.BLACK)
+		}
+
+		rl.BeginDrawing()
+	//	rl.ClearBackground(rl.RAYWHITE)
 		rl.EndDrawing()
 
 	}
@@ -87,9 +92,13 @@ main :: proc ( ) {
         }
 
     lua.L_openlibs(L); // Load Lua standard libraries
+
+    // Libraries
     lua.L_requiref(L, "shapes" , lua_openshapes,0)
     lua.L_requiref(L, "colors" , luacolor_open ,0)
     lua.L_requiref(L, "draw" , lua_opendraw  ,0)
+    lua.L_requiref(L, "window" , lua_openwindow ,0)
+
     // register functions
 	register(L)
 
