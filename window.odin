@@ -149,6 +149,12 @@ l_window_title :: proc "c" (L: ^lua.State) -> i32
 	return 0
 }
 
+l_get_fps :: proc "c" (L: ^lua.State) -> i32
+{
+	lua.pushinteger(L, lua.Integer(rl.GetFPS()))
+	return 1
+}
+
 window_meta := []lua.L_Reg{
 //	{"point", l_draw_point},
     {nil, nil},
@@ -156,6 +162,7 @@ window_meta := []lua.L_Reg{
 
 windowlib := []lua.L_Reg{
 	{"title", l_window_title},
+	{"get_fps" ,l_get_fps},
 	{"get_width_height" ,l_get_window_widthheight},
 	{"set_width_height" ,l_set_window_widthheight},
 	{"set_maxsize" ,l_set_window_maxsize },

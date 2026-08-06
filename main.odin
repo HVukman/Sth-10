@@ -82,9 +82,9 @@ err_msg : cstring
 
 main :: proc ( ) {
 
-	program = "main.lua"
-	L = lua.L_newstate(); // Create a new Lua state
-    defer lua.close(L); // Clean up later
+	program = "main2.lua"
+	L = lua.L_newstate() // Create a new Lua state
+    defer lua.close(L) // Clean up later
 
     if L == nil {
             fmt.println("Failed to create Lua state");
@@ -96,9 +96,11 @@ main :: proc ( ) {
     // Libraries
     lua.L_requiref(L, "shapes" , lua_openshapes,0)
     lua.L_requiref(L, "colors" , luacolor_open ,0)
-    lua.L_requiref(L, "draw" , lua_opendraw  ,0)
+    lua.L_requiref(L, "drawing" , lua_opendraw  ,0)
     lua.L_requiref(L, "window" , lua_openwindow ,0)
-
+    lua.L_requiref(L, "image" , lua_openimage ,0)
+    lua.L_requiref(L, "texture" , lua_opentexture ,0)
+     lua.L_requiref(L, "array" , luaarray_open ,0)
     // register functions
 	register(L)
 

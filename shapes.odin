@@ -330,7 +330,154 @@ lua_rect_tostring :: proc "c" (L: ^lua.State) -> i32 {
     return 1
 }
 
+// get triangle point
 
+lua_get_triangle_point :: proc "c" (L: ^lua.State) -> i32 {
+
+	context = runtime.default_context()
+	tri_ := cast(^triangle)lua.L_checkudata(L, 1, "TriangleMT")
+	ind  := lua.L_checkinteger(L, 2)
+
+	if ind == 1 {
+			result := cast(^point)lua.newuserdata(L, size_of(point))
+			result = &tri_.p1
+			return 1
+	}else if ind == 2 {
+			result := cast(^point)lua.newuserdata(L, size_of(point))
+			result = &tri_.p2
+			return 1
+	}else if ind ==3 {
+			result := cast(^point)lua.newuserdata(L, size_of(point))
+			result = &tri_.p3
+			return 1
+	}else{
+		lua.pushnil(L)
+		return 1
+	}
+
+
+}
+
+lua_set_triangle_point :: proc "c" (L: ^lua.State) -> i32 {
+
+    context = runtime.default_context()
+    tri_ := cast(^triangle)lua.L_checkudata(L, 1, "TriangleMT")
+    p_ := cast(^point)lua.L_checkudata(L, 2, "PointMT")
+    ind := lua.L_checknumber(L, 3)
+
+    switch ind {
+    case 1:
+    	tri_.p1 = p_^
+    case 2:
+   		tri_.p2 = p_^
+    case 3:
+   		tri_.p3 = p_^
+
+    case:
+        lua.L_error(L, "invalid field: %i (1,2,3) ", ind)
+        return 0
+    }
+    return 0
+}
+
+// __tostring for triangle
+lua_triangle_tostring :: proc "c" (L: ^lua.State) -> i32 {
+    context = runtime.default_context()
+
+    tri_ := cast(^triangle)lua.L_checkudata(L, 1, "TriangleMT")
+
+    str_ := fmt.tprintf( "Triangle p1x: %i , p1y : %i  p2x: %i , p2y : %i p3x: %i , p3y : %i" ,
+    	tri_.p1.x, tri_.p1.y, tri_.p2.x , tri_.p2.y , tri_.p3.x , tri_.p3.y )
+
+    lua.pushstring(L, strings.clone_to_cstring(str_))
+    return 1
+}
+
+// Get circle field (__index)
+lua_getcircleindex :: proc "c" (L: ^lua.State) -> i32 {
+    context = runtime.default_context()
+    circ_ := cast(^circle)lua.L_checkudata(L, 1, "CircleMT")
+    ind := lua.L_checkstring(L, 2)
+
+    switch ind {
+    case "x":
+        lua.pushnumber(L, lua.Number(circ_.x))
+        return 1
+    case "y":
+        lua.pushnumber(L, lua.Number(circ_.y))
+        return 1
+    case "radius":
+        lua.pushnumber(L, lua.Number(circ_.radius))
+        return 1
+    case "r":
+        lua.pushnumber(L, lua.Number(circ_.radius))
+        return 1
+    case:
+        lua.pushnil(L)
+        return 1
+    }
+}
+
+lua_setcircle :: proc "c" (L: ^lua.State) -> i32 {
+    context = runtime.default_context()
+    circ_ := cast(^circle)lua.L_checkudata(L, 1, "CircleMT")
+    ind := lua.L_checkstring(L, 2)
+    val := lua.L_checknumber(L, 3)
+
+    switch ind {
+    case "x":
+        circ_.x = f32(val)
+    case "y":
+        circ_.y = f32(val)
+    case "radius":
+        circ_.radius= f32(val)
+    case "r":
+        circ_.radius = f32(val)
+    case:
+        lua.L_error(L, "invalid field: %s", ind)
+        return 0
+    }
+    return 0
+}
+
+// __tostring for circle
+lua_circle_tostring :: proc "c" (L: ^lua.State) -> i32 {
+    context = runtime.default_context()
+
+
+    circ_ := cast(^circle)lua.L_checkudata(L, 1, "CircleMT")
+    buf: [128]byte
+    result := fmt.bprintf(buf[:], "Circle(x=%.2f, y=%.2f, radius=%.2f)",
+                          circ_.x, circ_.y, circ_.radius)
+    lua.pushstring(L, strings.clone_to_cstring(result))
+    return 1
+}
+
+
+// triangle meta table
+triangle_meta := []lua.L_Reg{
+
+    {"__index", lua_get_triangle_point},
+    {"__newindex", lua_set_triangle_point},
+    {"__tostring", lua_triangle_tostring},
+   /* {"size", pointarray_size},
+    {"get", pointarray_index  },
+    {"set", pointarray_set  }, */
+    {nil, nil},
+}
+
+
+// circle meta table
+circle_meta := []lua.L_Reg{
+
+    {"__index", lua_getcircleindex},
+    {"__newindex", lua_setcircle},
+    {"__tostring", lua_circle_tostring},
+   /* {"size", pointarray_size},
+    {"get", pointarray_index  },
+    {"set", pointarray_set  }, */
+    {nil, nil},
+}
 
 // rectangle meta table
 rect_meta := []lua.L_Reg{
@@ -338,9 +485,10 @@ rect_meta := []lua.L_Reg{
     {"__index", lua_getrectindex},
     {"__newindex", lua_setrect},
     {"__tostring", lua_rect_tostring},
-    {"size", pointarray_size},
+  /* {"size", pointarray_size},
     {"get", pointarray_index  },
     {"set", pointarray_set  },
+    */
     {nil, nil},
 }
 
@@ -379,6 +527,8 @@ point_meta := []lua.L_Reg{
 shapeslib := []lua.L_Reg{
     {"newpoint",  lua_newpoint},
     {"newrectangle",  lua_newrectangle},
+    {"newcircle",  lua_newcircle},
+    {"newtriangle",  lua_newtriangle},
     {"newpointarray", pointarray_new},
     {nil, nil},
 }
@@ -420,6 +570,43 @@ lua_newrectangle :: proc "c" (L: ^lua.State) -> i32  {
 	return 1
 }
 
+// create new triangle
+// newtrianlge(p1,p2,p3)
+lua_newtriangle :: proc "c" (L: ^lua.State) -> i32  {
+
+	context = runtime.default_context()
+	p1_ := cast(^point)lua.L_checkudata(L, 1, "PointMT")
+	p2_ := cast(^point)lua.L_checkudata(L, 2, "PointMT")
+	p3_ := cast(^point)lua.L_checkudata(L, 3, "PointMT")
+
+	t:= cast(^triangle)lua.newuserdata(L, size_of(triangle))
+	t.p1 = p1_^
+	t.p2 = p2_^
+	t.p3 = p3_^
+
+	lua.L_setmetatable(L, "TriangleMT")
+	return 1
+}
+
+// create new circle
+lua_newcircle :: proc "c" (L: ^lua.State) -> i32  {
+
+	context = runtime.default_context()
+	x := lua.L_checknumber(L,1)
+	y := lua.L_checknumber(L,2)
+	r := lua.L_checknumber(L,3)
+
+
+	v:= cast(^circle)lua.newuserdata(L, size_of(circle))
+	v.x = f32(x)
+	v.y = f32(y)
+	v.radius = f32(r)
+
+
+	lua.L_setmetatable(L, "CircleMT")
+	return 1
+}
+
 lua_openshapes :: proc "c" (L: ^lua.State) -> i32  {
 
 	context = runtime.default_context()
@@ -438,11 +625,17 @@ lua_openshapes :: proc "c" (L: ^lua.State) -> i32  {
     lua.pushcfunction(L, pointarray_string)
     lua.setfield(L, -2, "__tostring")
 
+    lua.L_newmetatable(L, "RectangleMT")
+    lua.L_setfuncs(L, raw_data(rect_meta), 0)
+    lua.pop(L, 1)
 
+    lua.L_newmetatable(L, "CircleMT")
+    lua.L_setfuncs(L, raw_data(circle_meta), 0)
+    lua.pop(L, 1)
 
-        lua.L_newmetatable(L, "RectangleMT")
-        lua.L_setfuncs(L, raw_data(rect_meta), 0)
-        lua.pop(L, 1)
+    lua.L_newmetatable(L, "TriangleMT")
+    lua.L_setfuncs(L, raw_data(triangle_meta), 0)
+    lua.pop(L, 1)
 
 	lua.L_newlib(L, shapeslib)
 

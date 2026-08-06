@@ -8,10 +8,14 @@ import "core:fmt"
 import lua "vendor:lua/5.4" // or whatever version you want
 import "core:c/libc"
 import "base:runtime"
+import rand "core:math/rand"
 
+// Better array structure - use raw memory directly
 array :: struct {
-    values: []f64,
+    size: int,
+    data: [^]f64,  // Raw pointer for faster access
 }
+
 
 
 array_newindex :: proc "c" (L: ^lua.State ) -> i32 {
@@ -36,7 +40,37 @@ array_newindex :: proc "c" (L: ^lua.State ) -> i32 {
     */
 
 
-    a.values[index-1] = val
+    a.data[index-1] = val
+
+
+    return 0
+
+}
+
+// batch change array
+// array.array_change(A,1,len)
+array_change :: proc "c" (L: ^lua.State ) -> i32 {
+
+	context = runtime.default_context()
+
+	a := cast(^array)lua.touserdata(L, 1)
+	b := int(lua.L_checknumber(L,2))
+	len_ := int(lua.L_checknumber(L,3))
+   // lua.L_argcheck(L, a != nil, 1, "array expected")
+
+   av := a.data[0:len_]
+   for i:=0;i<len(av);i+=1{
+   		num := rand.int_range(-1,b+1)
+     	a.data[i] = a.data[i] + f64(num)
+   }
+
+   /* lua.L_argcheck(
+        L,
+        1 <= index && index <= len(a.values),
+        2,
+        "index out of range",
+    )
+    */
 
 
     return 0
@@ -62,7 +96,7 @@ array_index :: proc "c" (L: ^lua.State ) -> i32 {
     )
     */
 
-    lua.pushnumber(L, lua.Number(a.values[index-1]))
+    lua.pushnumber(L, lua.Number(a.data[index-1]))
 
     return 1
 
@@ -78,6 +112,7 @@ array_meta := []lua.L_Reg{
 
 arraylib := []lua.L_Reg{
     {"new",  luaarray_new},
+    {"array_change",  array_change},
     {nil, nil},
 }
 
@@ -85,7 +120,7 @@ array_delete :: proc "c" (L: ^lua.State) -> i32 {
 
 	context = runtime.default_context()
 	a := cast(^array)lua.touserdata(L, 1)
-    delete (a.values)
+    free(a.data)
 	return 0
 }
 
@@ -96,7 +131,7 @@ luaarray_new :: proc "c" (L: ^lua.State) -> i32 {
     nbytes :uint= uint(size_of(array) + (n - 1) * size_of(f64))
 
     a := cast(^array)lua.newuserdata(L, nbytes)
-    a.values = make([]f64, n)
+    a.data = make([^]f64, n)
     // userdata is already on the Lua stack
 	lua.L_setmetatable(L, "array")
 	return 1
