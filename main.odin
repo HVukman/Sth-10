@@ -82,7 +82,7 @@ err_msg : cstring
 
 main :: proc ( ) {
 
-	program = "main2.lua"
+	program = "main.lua"
 	L = lua.L_newstate() // Create a new Lua state
     defer lua.close(L) // Clean up later
 
@@ -100,7 +100,9 @@ main :: proc ( ) {
     lua.L_requiref(L, "window" , lua_openwindow ,0)
     lua.L_requiref(L, "image" , lua_openimage ,0)
     lua.L_requiref(L, "texture" , lua_opentexture ,0)
-     lua.L_requiref(L, "array" , luaarray_open ,0)
+    lua.L_requiref(L, "array" , luaarray_open ,0)
+    lua.L_requiref(L, "mathlib" , lua_openmath ,0)
+    lua.L_requiref(L, "keys" , luakey_open , 0)
     // register functions
 	register(L)
 

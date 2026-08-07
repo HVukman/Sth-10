@@ -160,12 +160,12 @@ lua_getpointindex :: proc "c" (L: ^lua.State ) -> i32 {
 	point_:= cast(^point)lua.L_checkudata(L,1,"PointMT")
 	ind := lua.L_checkstring(L,2)
 
-	if ind == "x" {
+	if ind == "X" {
 
 		lua.pushnumber(L,lua.Number(point_.x))
 		return 1
 	}
-	else if ind == "y" {
+	else if ind == "Y" {
 
 		lua.pushnumber(L,lua.Number(point_.y))
 		return 1
@@ -198,12 +198,12 @@ lua_setpoint :: proc "c" (L: ^lua.State) -> i32  {
 	point_:= cast(^point)lua.L_checkudata(L,1,"PointMT")
 	ind := lua.L_checkstring(L,2)
 	val := lua.L_checknumber(L,3)
-	if ind == "x" {
+	if ind == "X" {
 		point_.x = f32(val)
 
 		return 0
 	}
-	else if ind == "y" {
+	else if ind == "Y" {
 		point_.y = f32(val)
 		return 0
 	}else{
@@ -277,10 +277,10 @@ lua_getrectindex :: proc "c" (L: ^lua.State) -> i32 {
     ind := lua.L_checkstring(L, 2)
 
     switch ind {
-    case "x":
+    case "X":
         lua.pushnumber(L, lua.Number(rect_.x))
         return 1
-    case "y":
+    case "Y":
         lua.pushnumber(L, lua.Number(rect_.y))
         return 1
     case "width":

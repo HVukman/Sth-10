@@ -6,10 +6,17 @@ local window = require("window")
 local image = require("image")
 local texture = require("texture")
 local array = require("array")
+local mathlib = require("mathlib")
+local keys  = require("keys")
+
 local limit = 100000
 local ax = array.new(limit)
 local ay = array.new(limit)
+
 function init()
+
+    local bin = mathlib.binom(43, 12)
+    print("bin ", bin)
 
     local width = 1280
     local height = 640
@@ -19,6 +26,13 @@ function init()
         ay[i] = math.random(height)
     end
 
+    local sum_ = mathlib.sum(ax, limit)
+    print("sum ", sum_)
+
+    print("ax 3 " , ax[3])
+    mathlib.random.shufflearray(ax, limit)
+
+    print("ax 3 shuffle " , ax[3])
 
     window.title("New Game")
     window.set_window_position(200,100)
@@ -27,9 +41,9 @@ function init()
 
     P1 = shapes_.newpoint(3, 4)
     P2 = shapes_.newpoint(200, 600)
-
+    P1["X"] = 9.2
     print(P1)
-    print(P1["x"])
+    print(" Y " , P1["Y"])
     print(P1 + P2)
 
     P3 = shapes_.newpoint(500, 100)
@@ -60,22 +74,20 @@ function init()
     print("Texture valid:", Val)
 
     P4 = shapes_.newpoint(300, 300)
-
-
+    print("rand i63", mathlib.random.i63())
+    print("rand u32", mathlib.random.u32())
 end
 
 function update()
-    fps = window.get_fps()
-    print(" fps ", fps)
 
-    array.array_change(ax, 1, limit)
-    array.array_change(ay, 1,limit)
-
-
-    if window.should_close() then
-        local mb = collectgarbage("count") / 1024
-        print(string.format("%.2f MB", mb))
+    if keys.key_pressed(keys.UP) then
+        print("pressed up")
+        P4.Y = P4.Y - 1
+    elseif keys.key_pressed(keys.DOWN) then
+        print("pressed up")
+        P4.Y = P4.Y + 1
     end
+
 end
 
 function draw()
@@ -89,13 +101,6 @@ function draw()
     draw_.line(P1, P2, color.GREEN)
     draw_.circle(C1, color.PURPLE)
     draw_.lines_circle(C2, color.SKYBLUE)
-
-
-    for i = 1, (limit) do
-        local p4 = shapes_.newpoint(ax[i], ay[i])
-        texture.draw(Text_,p4)
-    end
-
-
+    texture.draw(Text_,P4)
 
 end
