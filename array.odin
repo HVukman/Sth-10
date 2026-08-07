@@ -48,17 +48,16 @@ array_newindex :: proc "c" (L: ^lua.State ) -> i32 {
 }
 
 // batch change array
-// array.array_change(A,1,len)
+// array.array_change(A,1)
 array_change :: proc "c" (L: ^lua.State ) -> i32 {
 
 	context = runtime.default_context()
 
 	a := cast(^array)lua.touserdata(L, 1)
 	b := int(lua.L_checknumber(L,2))
-	len_ := int(lua.L_checknumber(L,3))
    // lua.L_argcheck(L, a != nil, 1, "array expected")
 
-   av := a.data[0:len_]
+   av := a.data[0:a.size]
    for i:=0;i<len(av);i+=1{
    		num := rand.int_range(-1,b+1)
      	a.data[i] = a.data[i] + f64(num)
@@ -132,6 +131,7 @@ luaarray_new :: proc "c" (L: ^lua.State) -> i32 {
 
     a := cast(^array)lua.newuserdata(L, nbytes)
     a.data = make([^]f64, n)
+    a.size= n
     // userdata is already on the Lua stack
 	lua.L_setmetatable(L, "array")
 	return 1

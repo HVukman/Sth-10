@@ -86,8 +86,7 @@ lua_lcm :: proc "c" (L: ^lua.State) -> i32 {
 lua_sum :: proc "c" (L: ^lua.State) -> i32 {
 
 	a := cast(^array)lua.touserdata(L, 1)
-	len_ := int(lua.L_checknumber(L,2))
-    av := a.data[0:len_]
+    av := a.data[0:a.size]
 	lua.pushnumber(L, lua.Number(math.sum(av)))
 	return 1
 }
@@ -176,8 +175,8 @@ lua_shufflearray :: proc "c" (L: ^lua.State) -> i32 {
 
 	context = runtime.default_context()
 	a := cast(^array)lua.touserdata(L, 1)
-	len_ := int(lua.L_checknumber(L,2))
-    av := a.data[0:len_]
+
+    av := a.data[0:a.size]
 
     rand.shuffle(av)
     return 0

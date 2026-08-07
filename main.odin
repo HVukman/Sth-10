@@ -103,6 +103,7 @@ main :: proc ( ) {
     lua.L_requiref(L, "array" , luaarray_open ,0)
     lua.L_requiref(L, "mathlib" , lua_openmath ,0)
     lua.L_requiref(L, "keys" , luakey_open , 0)
+    lua.L_requiref(L, "text" , luatext_open , 0)
     // register functions
 	register(L)
 

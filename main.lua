@@ -8,6 +8,8 @@ local texture = require("texture")
 local array = require("array")
 local mathlib = require("mathlib")
 local keys  = require("keys")
+local text   = require("text")
+
 
 local limit = 100000
 local ax = array.new(limit)
@@ -26,11 +28,11 @@ function init()
         ay[i] = math.random(height)
     end
 
-    local sum_ = mathlib.sum(ax, limit)
+    local sum_ = mathlib.sum(ax)
     print("sum ", sum_)
 
     print("ax 3 " , ax[3])
-    mathlib.random.shufflearray(ax, limit)
+    mathlib.random.shufflearray(ax)
 
     print("ax 3 shuffle " , ax[3])
 
@@ -102,5 +104,6 @@ function draw()
     draw_.circle(C1, color.PURPLE)
     draw_.lines_circle(C2, color.SKYBLUE)
     texture.draw(Text_,P4)
+    text.draw_text("hello world", P2, 16, color.GREEN)
 
 end
