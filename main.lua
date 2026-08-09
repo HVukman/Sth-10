@@ -9,7 +9,7 @@ local array = require("array")
 local mathlib = require("mathlib")
 local keys  = require("keys")
 local text   = require("text")
-
+local mouse = require("mouse")
 
 local limit = 100000
 local ax = array.new(limit)
@@ -78,16 +78,30 @@ function init()
     P4 = shapes_.newpoint(300, 300)
     print("rand i63", mathlib.random.i63())
     print("rand u32", mathlib.random.u32())
+
+    Pico8 = text.load_font("resources/pico-8.ttf")
+    P5 = shapes_.newpoint(400, 600)
+
+    SolidColorImage = image.gen_image_color(260, 260, color.BLUE)
+    print("solid " , SolidColorImage)
+    Text_2 = texture.texture_from_image(SolidColorImage)
+    P6 = shapes_.newpoint(900, 300)
 end
 
 function update()
 
-    if keys.key_pressed(keys.UP) then
+    if keys.key_down(keys.UP) then
         print("pressed up")
         P4.Y = P4.Y - 1
-    elseif keys.key_pressed(keys.DOWN) then
+    elseif keys.key_down(keys.DOWN) then
         print("pressed up")
         P4.Y = P4.Y + 1
+    elseif keys.key_down(keys.LEFT) then
+        print("pressed left")
+        P4.X = P4.X - 1
+    elseif keys.key_down(keys.RIGHT) then
+        print("pressed r")
+        P4.X = P4.X + 1
     end
 
 end
@@ -105,5 +119,6 @@ function draw()
     draw_.lines_circle(C2, color.SKYBLUE)
     texture.draw(Text_,P4)
     text.draw_text("hello world", P2, 16, color.GREEN)
-
+    text.draw_text_ex(Pico8, "HELLOW PICO", P5, 18, 2 , color.PINK )
+    texture.draw(Text_2,P6)
 end
