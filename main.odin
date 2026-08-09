@@ -3,6 +3,8 @@ package sth10
 import rl "vendor:raylib"
 import lua "vendor:lua/5.4"
 import "core:fmt"
+import "core:os"
+import "core:strings"
 
 SCREEN_WIDTH :: 800
 SCREEN_HEIGHT :: 450
@@ -79,10 +81,11 @@ main_loop :: proc( ) {
 L : ^lua.State
 program : cstring
 err_msg : cstring
+debug : bool
 
 main :: proc ( ) {
 
-	program = "main.lua"
+
 	L = lua.L_newstate() // Create a new Lua state
     defer lua.close(L) // Clean up later
 
@@ -104,9 +107,55 @@ main :: proc ( ) {
     lua.L_requiref(L, "mathlib" , lua_openmath ,0)
     lua.L_requiref(L, "keys" , luakey_open , 0)
     lua.L_requiref(L, "text" , luatext_open , 0)
+    lua.L_requiref(L, "mouse" , luamouse_open , 0)
     // register functions
 	register(L)
 
+	// run the program with arguments
+
+
+		if len(os.args) > 1 {
+
+			for i := 1; i < len(os.args); i += 1 {
+				fmt.println(" arg ", os.args[i])
+				if os.is_file(os.args[i]) {
+					fmt.println("is file")
+					program = strings.clone_to_cstring(os.args[i])
+
+				} else if os.args[i] == "-debug" {
+					debug = true
+				} else if os.args[i] == "-resizable" {
+					rl.SetConfigFlags({rl.ConfigFlag.WINDOW_RESIZABLE})
+				} else if os.args[i] == "-unfocused" {
+					rl.SetConfigFlags({rl.ConfigFlag.WINDOW_UNFOCUSED})
+				} else if os.args[i] == "-undecorated" {
+					rl.SetConfigFlags({rl.ConfigFlag.WINDOW_UNDECORATED})
+				} else if os.args[i] == "-mouse_passthrough" {
+					rl.SetConfigFlags({rl.ConfigFlag.WINDOW_MOUSE_PASSTHROUGH})
+				} else if os.args[i] == "-fullscreen" {
+					rl.SetConfigFlags({rl.ConfigFlag.FULLSCREEN_MODE})
+				} else if os.args[i] == "-transparent" {
+					rl.SetConfigFlags({rl.ConfigFlag.WINDOW_TRANSPARENT})
+				} else if os.args[i] == "-top_most" {
+					rl.SetConfigFlags({rl.ConfigFlag.WINDOW_TOPMOST})
+				} else if os.args[i] == "-hidden" {
+					rl.SetConfigFlags({rl.ConfigFlag.WINDOW_HIDDEN})
+				}
+
+			}
+
+		}
+
+		if program != "" {
+			fmt.println("starting ", program)
+
+		} else {
+			program = "main.lua"
+		}
+
+
 
 	main_loop()
+
+
 }
