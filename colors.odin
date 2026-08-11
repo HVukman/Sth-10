@@ -2,7 +2,6 @@ package sth10
 
 import rl "vendor:raylib"
 import lua "vendor:lua/5.4"
-import "core:fmt"
 import "base:runtime"
 
 

@@ -6,6 +6,7 @@ import "core:fmt"
 import "base:runtime"
 
 
+
 draw_meta := []lua.L_Reg{
 //	{"point", l_draw_point},
     {nil, nil},
@@ -154,6 +155,91 @@ l_draw_triangle_lines  :: proc "c" (L: ^lua.State) -> i32 {
 	rl.DrawTriangleLines(v1,v2,v3, COLOR_ARRAY[col_])
 
 	return 0
+}
+
+// begin 2d
+//
+lua_begin_2d :: proc "c" (L: ^lua.State) -> i32  {
+
+	context = runtime.default_context()
+    cam := cast(^rl.Camera2D)lua.touserdata(L,1)
+    rl.BeginMode2D(cam^)
+	return 0
+
+}
+
+// end 2d
+//
+lua_end_2d :: proc "c" (L: ^lua.State) -> i32  {
+
+	context = runtime.default_context()
+    rl.EndMode2D()
+	return 0
+
+}
+
+
+
+// new camera
+//
+lua_new_camera :: proc "c" (L: ^lua.State) -> i32  {
+
+	context = runtime.default_context()
+    cam := cast(^rl.Camera2D)lua.newuserdata(L, size_of(rl.Camera2D))
+	return 1
+
+}
+
+// set camera target
+lua_set_camera_target :: proc "c" (L: ^lua.State) -> i32  {
+
+	context = runtime.default_context()
+    cam := cast(^rl.Camera2D)lua.touserdata(L,1)
+    point_:= cast(^point)lua.L_checkudata(L,2,"PointMT")
+    cam.target.x = point_.x
+    cam.target.y = point_.y
+
+	return 0
+
+}
+
+// set camera target
+lua_set_camera_offset :: proc "c" (L: ^lua.State) -> i32  {
+
+	context = runtime.default_context()
+    cam := cast(^rl.Camera2D)lua.touserdata(L,1)
+    point_:= cast(^point)lua.L_checkudata(L,2,"PointMT")
+    cam.offset.x = point_.x
+    cam.offset.y = point_.y
+
+	return 0
+
+}
+
+// set camera zoom
+lua_set_camera_zoom :: proc "c" (L: ^lua.State) -> i32  {
+
+	context = runtime.default_context()
+    cam := cast(^rl.Camera2D)lua.touserdata(L,1)
+    zoom := lua.L_checknumber(L,2)
+
+    cam.zoom = f32(zoom)
+
+	return 0
+
+}
+
+// set camera rot
+lua_set_camera_rotation :: proc "c" (L: ^lua.State) -> i32  {
+
+	context = runtime.default_context()
+    cam := cast(^rl.Camera2D)lua.touserdata(L,1)
+    rot := lua.L_checknumber(L,2)
+
+    cam.rotation = f32(rot)
+
+	return 0
+
 }
 
 lua_opendraw :: proc "c" (L: ^lua.State) -> i32  {

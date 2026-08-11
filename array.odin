@@ -10,12 +10,11 @@ import "core:c/libc"
 import "base:runtime"
 import rand "core:math/rand"
 
-// Better array structure - use raw memory directly
+
 array :: struct {
     size: int,
     data: [^]f64,  // Raw pointer for faster access
 }
-
 
 
 array_newindex :: proc "c" (L: ^lua.State ) -> i32 {
