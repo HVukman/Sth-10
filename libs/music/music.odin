@@ -2,7 +2,7 @@ package music
 
 // music module
 
-import "base:runtime"// or whatever version you want
+import "base:runtime" // or whatever version you want
 import "core:c/libc"
 import "core:fmt"
 import "core:os"
@@ -13,10 +13,9 @@ import rl "vendor:raylib"
 
 // Sound userdata wrapper
 MusicData :: struct {
-	music: rl.Music,
-	length : f32,
+	music:  rl.Music,
+	length: f32,
 }
-
 
 
 lua_load_music :: proc "c" (L: ^lua.State) -> i32 {
@@ -51,8 +50,8 @@ lua_set_music_volume :: proc "c" (L: ^lua.State) -> i32 {
 
 	context = runtime.default_context()
 	music := cast(^MusicData)lua.L_checkudata(L, 1, "MusicMT")
-	vol := lua.L_checknumber(L,2)
-	rl.SetMusicVolume(music.music , f32(vol))
+	vol := lua.L_checknumber(L, 2)
+	rl.SetMusicVolume(music.music, f32(vol))
 	return 0
 }
 
@@ -60,26 +59,26 @@ lua_set_music_pitch :: proc "c" (L: ^lua.State) -> i32 {
 
 	context = runtime.default_context()
 	music := cast(^MusicData)lua.L_checkudata(L, 1, "MusicMT")
-	vol := lua.L_checknumber(L,2)
-	rl.SetMusicPitch(music.music , f32(vol))
+	vol := lua.L_checknumber(L, 2)
+	rl.SetMusicPitch(music.music, f32(vol))
 	return 0
 }
 
-lua_set_music_pan:: proc "c" (L: ^lua.State) -> i32 {
+lua_set_music_pan :: proc "c" (L: ^lua.State) -> i32 {
 
 	context = runtime.default_context()
 	music := cast(^MusicData)lua.L_checkudata(L, 1, "MusicMT")
-	vol := lua.L_checknumber(L,2)
-	rl.SetMusicPan(music.music , f32(vol))
+	vol := lua.L_checknumber(L, 2)
+	rl.SetMusicPan(music.music, f32(vol))
 	return 0
 }
 
-lua_seek_music:: proc "c" (L: ^lua.State) -> i32 {
+lua_seek_music :: proc "c" (L: ^lua.State) -> i32 {
 
 	context = runtime.default_context()
 	music := cast(^MusicData)lua.L_checkudata(L, 1, "MusicMT")
-	seek := lua.L_checknumber(L,2)
-	rl.SeekMusicStream(music.music , f32(seek))
+	seek := lua.L_checknumber(L, 2)
+	rl.SeekMusicStream(music.music, f32(seek))
 	return 0
 }
 
@@ -88,7 +87,7 @@ lua_play_music :: proc "c" (L: ^lua.State) -> i32 {
 	context = runtime.default_context()
 	music := cast(^MusicData)lua.L_checkudata(L, 1, "MusicMT")
 
-	rl.PlayAudioStream(music.music)
+	rl.PlayMusicStream(music.music)
 	return 0
 }
 
@@ -146,11 +145,12 @@ lua_music_gc :: proc "c" (L: ^lua.State) -> i32 {
 }
 
 
- lua_update_music:: proc "c" (L: ^lua.State) -> i32 {
+lua_update_music :: proc "c" (L: ^lua.State) -> i32 {
 
 	context = runtime.default_context()
 	music := cast(^MusicData)lua.L_checkudata(L, 1, "MusicMT")
 	rl.UpdateMusicStream(music.music)
+
 	return 0
 }
 
@@ -158,32 +158,40 @@ lua_music_tostring :: proc "c" (L: ^lua.State) -> i32 {
 
 	context = runtime.default_context()
 	music := cast(^MusicData)lua.L_checkudata(L, 1, "MusicMT")
-	res := fmt.tprintf("Music: Length %.2f Channels %i SampleSize : %i", rl.GetMusicTimeLength(music.music), music.music.channels,music.music.sampleSize)
+	res := fmt.tprintf(
+		"Music: Length %.2f Channels %i SampleSize : %i",
+		rl.GetMusicTimeLength(music.music),
+		music.music.channels,
+		music.music.sampleSize,
+	)
 	lua.pushstring(L, strings.clone_to_cstring(res))
 	return 1
 }
 
-
-
+lua_get_time_played :: proc "c" (L: ^lua.State) -> i32 {
+	context = runtime.default_context()
+	music := cast(^MusicData)lua.L_checkudata(L, 1, "MusicMT")
+	lua.pushnumber(L,lua.Number( rl.GetMusicTimePlayed(music.music)))
+	return 1
+}
 
 lua_musiclib := []lua.L_Reg {
-
 	{"is_valid_music", lua_valid_music},
 	{"load_music", lua_load_music},
 	{"play_music", lua_play_music},
 	{"stop_music", lua_stop_music},
 	{"pause_music", lua_pause_music},
 	{"play_music", lua_play_music},
-	{"set_pitch", lua_set_music_pitch },
-		{"set_pan", lua_set_music_pan},
-			{"set_volume", lua_set_music_volume },
+	{"set_pitch", lua_set_music_pitch},
+	{"set_pan", lua_set_music_pan},
+	{"set_volume", lua_set_music_volume},
 	{"resume_music", lua_resume_music},
 	{"is_music_playing", lua_is_music_playing},
 	{"update_music_stream", lua_update_music},
+	{"get_time_played", lua_get_time_played},
 	{"seek_music", lua_seek_music},
 	{nil, nil},
 }
-
 
 
 music_meta := []lua.L_Reg {

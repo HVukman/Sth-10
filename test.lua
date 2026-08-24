@@ -1,4 +1,4 @@
--- main.lua
+-- test.lua
 
 local draw_ = require("drawing")
 local window = require("window")

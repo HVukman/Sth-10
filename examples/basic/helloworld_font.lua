@@ -17,7 +17,7 @@ function init()
     window.title("Hello World")
     window.set_width_height(width,height)
     P1 = shapes_.newpoint(width/2, height/2)
-    Pico8 = text.load_font("resources/pico-8.ttf")
+    Pico8 = text.load_font("examples/resources/pico-8.ttf")
 end
 
 function update()
@@ -28,6 +28,6 @@ end
 function draw()
 
     draw_.clear_background(color.BLACK)
-    text.draw_text_ex(Pico8, "hello world", P1, 18, 5, color.PINK)
+    text.draw_text_ex(Pico8, "hello world", P1, 23, 5, color.PINK)
 
 end

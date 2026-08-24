@@ -121,7 +121,6 @@ lua_load_image :: proc "c" (L: ^lua.State) -> i32 {
 		return 0
 	}
 
-
 }
 
 // helper to calculate distance between colors

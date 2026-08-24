@@ -57,9 +57,9 @@ lua_load_font :: proc "c" (L: ^lua.State) -> i32 {
 	if os.is_file(strings.clone_from_cstring(path)) {
 		f := rl.LoadFont(path)
 		if rl.IsFontValid(f){
-			f :=  cast(^FontData)lua.newuserdata(L, size_of(FontData))
-			f.font = rl.GetFontDefault()
-			f.fonttype = rl.FontType.DEFAULT
+			f_ :=  cast(^FontData)lua.newuserdata(L, size_of(FontData))
+			f_.font = f
+			f_.fonttype = rl.FontType.DEFAULT
 			lua.L_setmetatable(L, "FontMT")
 			return 1
 		}else{

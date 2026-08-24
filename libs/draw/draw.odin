@@ -7,27 +7,11 @@ import "base:runtime"
 import "../colors"
 import shapes "../shapes"
 
-draw_meta := []lua.L_Reg{
-//	{"point", l_draw_point},
-    {nil, nil},
+render_texture_wrap :: struct {
+	render_texture : rl.RenderTexture
 }
 
-drawlib := []lua.L_Reg{
-	{"point", l_draw_point},
-	{"line", l_draw_line},
-	{"triangle", l_draw_triangle},
-	{"lines_triangle", l_draw_triangle_lines},
-	{"clear_background" , l_clear_background },
-	{"rectangle", l_draw_full_rectangle},
-	{"lines_rectangle", l_draw_lines_rectangle},
-	{"ellipse", l_draw_full_ellipse},
-	{"lines_ellipse", l_draw_lines_ellipse},
-	{"polygon", l_draw_full_polygon},
-//	{"lines_ellipse", l_draw_lines_ellipse},
-	{"circle", l_draw_full_circle},
-	{"lines_circle", l_draw_lines_circle},
-    {nil, nil},
-}
+
 
 // clear background
 //
@@ -288,11 +272,81 @@ lua_set_camera_rotation :: proc "c" (L: ^lua.State) -> i32  {
 
 }
 
+lua_end_texture_mode :: proc "c" (L: ^lua.State) -> i32  {
+	rl.EndTextureMode()
+	return 0
+}
+
+lua_begin_texture_mode :: proc "c" (L: ^lua.State) -> i32  {
+
+	rt:= cast(^render_texture_wrap)lua.L_checkudata(L,1, "RenderTextureMT")
+	rl.BeginTextureMode(rt.render_texture)
+	return 0
+}
+
+lua_render_texture :: proc "c" (L: ^lua.State) -> i32  {
+
+	context = runtime.default_context()
+  	w := lua.L_checknumber(L,1)
+   	h := lua.L_checknumber(L,2)
+    rendertext := cast(^render_texture_wrap)lua.newuserdata(L, size_of(render_texture_wrap))
+    rendertext.render_texture.texture.height = i32(h)
+    rendertext.render_texture.texture.width = i32(w)
+
+	lua.L_setmetatable(L, "RenderTextureMT")
+
+	return 1
+
+}
+
+lua_rt_gc :: proc "c" (L: ^lua.State) -> i32  {
+
+	rt := cast(^render_texture_wrap)lua.L_checkudata(L,1, "RenderTextureMT")
+	rl.UnloadRenderTexture(rt.render_texture)
+	return 0
+
+}
+
+rendertexture_meta:= []lua.L_Reg{
+//	{"point", l_draw_point},
+   {"__gc", lua_rt_gc},
+    {nil, nil},
+}
+
+draw_meta := []lua.L_Reg{
+//	{"point", l_draw_point},
+    {nil, nil},
+}
+
+drawlib := []lua.L_Reg{
+	{"point", l_draw_point},
+	{"line", l_draw_line},
+	{"triangle", l_draw_triangle},
+	{"lines_triangle", l_draw_triangle_lines},
+	{"clear_background" , l_clear_background },
+	{"rectangle", l_draw_full_rectangle},
+	{"lines_rectangle", l_draw_lines_rectangle},
+	{"ellipse", l_draw_full_ellipse},
+	{"lines_ellipse", l_draw_lines_ellipse},
+	{"polygon", l_draw_full_polygon},
+	{"circle", l_draw_full_circle},
+	{"lines_circle", l_draw_lines_circle},
+	{"new_render_texture", lua_render_texture},
+	{"begin_texture_mode" , lua_begin_texture_mode},
+	{"end_texture_mode" , lua_end_texture_mode},
+    {nil, nil},
+}
+
 lua_opendraw :: proc "c" (L: ^lua.State) -> i32  {
 
 	context = runtime.default_context()
 
+	lua.L_newmetatable(L, "RenderTextureMT")
+	lua.L_setfuncs(L, raw_data(rendertexture_meta), 0)
+	lua.pop(L, 1)
+
 	lua.L_setfuncs(L, raw_data(draw_meta), 0)
 	lua.L_newlib(L, drawlib)
+
 	return 1
 }

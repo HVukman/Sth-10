@@ -13,9 +13,12 @@ KeyEnum :: enum {
 	Right = int(rl.KeyboardKey.RIGHT),
 	X     = int(rl.KeyboardKey.X),
 	Y     = int(rl.KeyboardKey.Y),
+	Z     = int(rl.KeyboardKey.Z),
 	A     = int(rl.KeyboardKey.A),
 	S     = int(rl.KeyboardKey.S),
 	H     = int(rl.KeyboardKey.H),
+	P     = int(rl.KeyboardKey.P),
+	R    = int(rl.KeyboardKey.R),
 	SPACE = int(rl.KeyboardKey.SPACE),
 	ENTER = int(rl.KeyboardKey.ENTER),
 }
@@ -110,6 +113,9 @@ luakey_open :: proc "c" (L: ^lua.State) -> i32 {
 	lua.pushinteger(L, lua.Integer(KeyEnum.Y))
 	lua.setfield(L, -2, "Y")
 
+	lua.pushinteger(L, lua.Integer(KeyEnum.Z))
+	lua.setfield(L, -2, "Z")
+
 	lua.pushinteger(L, lua.Integer(KeyEnum.A))
 	lua.setfield(L, -2, "A")
 
@@ -118,6 +124,15 @@ luakey_open :: proc "c" (L: ^lua.State) -> i32 {
 
 	lua.pushinteger(L, lua.Integer(KeyEnum.H))
 	lua.setfield(L, -2, "H")
+
+	lua.pushinteger(L, lua.Integer(KeyEnum.P))
+	lua.setfield(L, -2, "P")
+
+	lua.pushinteger(L, lua.Integer(KeyEnum.R))
+	lua.setfield(L, -2, "R")
+
+	lua.pushinteger(L, lua.Integer(KeyEnum.S))
+	lua.setfield(L, -2, "S")
 
 	lua.pushinteger(L, lua.Integer(KeyEnum.SPACE))
 	lua.setfield(L, -2, "SPACE")

@@ -10,10 +10,17 @@ local mathlib = require("mathlib")
 local keys  = require("keys")
 local text   = require("text")
 local mouse = require("mouse")
+local sound   = require("sound")
+--local music   = require("music")
 
 local limit = 100000
 local ax = array.new(limit)
 local ay = array.new(limit)
+
+local mousex  = 0
+local mousey  = 0
+
+
 
 function init()
 
@@ -36,7 +43,7 @@ function init()
 
     print("ax 3 shuffle " , ax[3])
 
-    window.title("New Game")
+    window.title("Sth10 Playground (Press arrow keys to move bunny)")
     window.set_window_position(200,100)
     window.set_width_height(width,height)
 
@@ -66,7 +73,7 @@ function init()
     T1 = shapes_.newtriangle(P1,P2,P3)
     print(T1)
 
-    Img_ = image.load_image("resources/bunny.png")
+    Img_ = image.load_image("examples/resources/bunny.png")
     print(Img_)
 
     Text_ = texture.texture_from_image(Img_)
@@ -79,13 +86,27 @@ function init()
     print("rand i63", mathlib.random.i63())
     print("rand u32", mathlib.random.u32())
 
-    Pico8 = text.load_font("resources/pico-8.ttf")
+    Pico8 = text.load_font("examples/resources/pico-8.ttf")
     P5 = shapes_.newpoint(400, 600)
 
     SolidColorImage = image.gen_image_color(260, 260, color.BLUE)
     print("solid " , SolidColorImage)
     Text_2 = texture.texture_from_image(SolidColorImage)
     P6 = shapes_.newpoint(900, 300)
+
+    EllipsePoint = shapes_.newpoint(200, 500)
+    Ellipse = shapes_.newellipse(EllipsePoint, 36, 70)
+    print("Ellipse ", Ellipse)
+
+    PolygonPoint = shapes_.newpoint(500, 500)
+    Polygon = shapes_.newpolygon(PolygonPoint, 8, 16, 12)
+    print("Polygon ", Polygon)
+
+    Mouse_point = shapes_.newpoint(1000, 100)
+
+    Snd         = sound.load_sound("examples/resources/beep.wav")
+    sound.set_volume(Snd,1)
+    sound.play_sound(Snd)
 end
 
 function update()
@@ -104,6 +125,9 @@ function update()
         P4.X = P4.X + 1
     end
 
+    mousex = mouse.get_mouse_x()
+    mousey = mouse.get_mouse_y()
+
 end
 
 function draw()
@@ -117,8 +141,12 @@ function draw()
     draw_.line(P1, P2, color.GREEN)
     draw_.circle(C1, color.PURPLE)
     draw_.lines_circle(C2, color.SKYBLUE)
-    texture.draw(Text_,P4)
+    draw_.ellipse(Ellipse, color.DARKPURPLE)
+    draw_.polygon(Polygon, color.GOLD)
+    texture.draw(Text_, P4)
+
     text.draw_text("hello world", P2, 16, color.GREEN)
+    text.draw_text("Mouse X: " .. tostring(mousex) .. " Mouse Y: " .. tostring(mousey), Mouse_point, 16, color.RAYWHITE)
     text.draw_text_ex(Pico8, "HELLOW PICO", P5, 18, 2 , color.PINK )
     texture.draw(Text_2,P6)
 end

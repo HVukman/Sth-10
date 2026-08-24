@@ -6,10 +6,20 @@ import "core:fmt"
 import "core:os"
 import "core:strings"
 
-SCREEN_WIDTH :: 800
-SCREEN_HEIGHT :: 450
-STANDARD_TITLE :: "STH-10 GAME"
-
+import mouse "libs/mouse"
+import color "libs/colors"
+import text "libs/text"
+import shapes "libs/shapes"
+import draw "libs/draw"
+import window "libs/window"
+import img "libs/images"
+import texture "libs/textures"
+import array "libs/array"
+import mathlib "libs/math"
+import keys "libs/keys"
+import sounds "libs/sounds"
+import music "libs/music"
+import gui "libs/gui"
 
 main_loop :: proc( ) {
 
@@ -25,14 +35,15 @@ main_loop :: proc( ) {
 
 
 	rl.InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, STANDARD_TITLE)
+	rl.InitAudioDevice()
 	defer rl.CloseWindow()
-
+	defer rl.CloseAudioDevice()
 	lua.getglobal(L, cstring("init"))
 		if lua.isfunction(L, -1) {
 			if lua.pcall(L, 0, 0, 0) != 0 {
 				err_msg = lua.tostring(L, 1)
 				lua.pop(L, 1)
-				fmt.println(" No init found in file :", lua.tostring(L, -1))
+				fmt.println(" Error in init :", lua.tostring(L, -1))
 
 			}
 		}
@@ -48,12 +59,13 @@ main_loop :: proc( ) {
 					if lua.pcall(L, 0, 0, 0) != 0 {
 						err_msg = lua.tostring(L, 1)
 						lua.pop(L, 1)
-						fmt.println(" No update found in file :", lua.tostring(L, -1))
+						fmt.println(" Error in update :", lua.tostring(L, -1))
 						break
 					}
 				}
 		}
 
+		rl.BeginDrawing()
 		if err_msg == ""{
 
 			lua.getglobal(L, cstring("draw"))
@@ -63,14 +75,14 @@ main_loop :: proc( ) {
 						err_msg = lua.tostring(L, 1)
 						fmt.println(err_msg)
 						lua.pop(L, 1)
-						fmt.println(" No draw found in file ", lua.tostring(L, -1))
+						fmt.println(" Error in draw ", lua.tostring(L, -1))
 						return
 					}
 				}
 
 		}
 
-		rl.BeginDrawing()
+
 	//	rl.ClearBackground(rl.RAYWHITE)
 		rl.EndDrawing()
 
@@ -97,19 +109,21 @@ main :: proc ( ) {
     lua.L_openlibs(L); // Load Lua standard libraries
 
     // Libraries
-    lua.L_requiref(L, "shapes" , lua_openshapes,0)
-    lua.L_requiref(L, "colors" , luacolor_open ,0)
-    lua.L_requiref(L, "drawing" , lua_opendraw  ,0)
-    lua.L_requiref(L, "window" , lua_openwindow ,0)
-    lua.L_requiref(L, "image" , lua_openimage ,0)
-    lua.L_requiref(L, "texture" , lua_opentexture ,0)
-    lua.L_requiref(L, "array" , luaarray_open ,0)
-    lua.L_requiref(L, "mathlib" , lua_openmath ,0)
-    lua.L_requiref(L, "keys" , luakey_open , 0)
-    lua.L_requiref(L, "text" , luatext_open , 0)
-    lua.L_requiref(L, "mouse" , luamouse_open , 0)
-    // register functions
-	register(L)
+    lua.L_requiref(L, "shapes" , shapes.lua_openshapes,0)
+    lua.L_requiref(L, "colors" , color.luacolor_open ,0)
+    lua.L_requiref(L, "drawing" , draw.lua_opendraw  ,0)
+    lua.L_requiref(L, "window" , window.lua_openwindow ,0)
+    lua.L_requiref(L, "image" , img.lua_openimage ,0)
+    lua.L_requiref(L, "texture" , texture.lua_opentexture ,0)
+    lua.L_requiref(L, "array" , array.luaarray_open ,0)
+    lua.L_requiref(L, "mathlib" , mathlib.lua_openmath ,0)
+    lua.L_requiref(L, "keys" , keys.luakey_open , 0)
+    lua.L_requiref(L, "text" , text.luatext_open , 0)
+    lua.L_requiref(L, "mouse" , mouse.luamouse_open , 0)
+    lua.L_requiref(L, "sound" , sounds.luasound_open , 0)
+     lua.L_requiref(L, "music" , music.luamusic_open , 0)
+    lua.L_requiref(L, "gui" , gui.luagui_open , 0)
+
 
 	// run the program with arguments
 
