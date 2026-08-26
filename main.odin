@@ -20,6 +20,8 @@ import keys "libs/keys"
 import sounds "libs/sounds"
 import music "libs/music"
 import gui "libs/gui"
+import os_ "libs/os"
+import collision "libs/collision"
 
 main_loop :: proc( ) {
 
@@ -27,24 +29,26 @@ main_loop :: proc( ) {
 
 	if succ != lua.Status.ERRFILE{
 		if lua.pcall(L, 0, 0, 0) != 0 {
-			err_msg = lua.tostring(L, 1)
+			err_msg = lua.tostring(L, -1)
+
+			fmt.println(" File cannot be loaded: ", err_msg)
 			lua.pop(L, 1)
-			fmt.println(" File cannot be loaded ")
 			return
 		}
 
 
-	rl.InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, STANDARD_TITLE)
+	rl.InitWindow(window.SCREEN_WIDTH, window.SCREEN_HEIGHT, window.STANDARD_TITLE)
+	rl.SetTargetFPS(60) // if not otherwise
 	rl.InitAudioDevice()
 	defer rl.CloseWindow()
 	defer rl.CloseAudioDevice()
 	lua.getglobal(L, cstring("init"))
 		if lua.isfunction(L, -1) {
 			if lua.pcall(L, 0, 0, 0) != 0 {
-				err_msg = lua.tostring(L, 1)
+				err_msg = lua.tostring(L, -1)
 				lua.pop(L, 1)
-				fmt.println(" Error in init :", lua.tostring(L, -1))
-
+				fmt.println(" Error in init :", err_msg)
+				return
 			}
 		}
 
@@ -57,9 +61,9 @@ main_loop :: proc( ) {
 				if lua.isfunction(L, -1) {
 
 					if lua.pcall(L, 0, 0, 0) != 0 {
-						err_msg = lua.tostring(L, 1)
+						err_msg = lua.tostring(L, -1)
 						lua.pop(L, 1)
-						fmt.println(" Error in update :", lua.tostring(L, -1))
+						fmt.println(" Error in update :", err_msg)
 						break
 					}
 				}
@@ -72,10 +76,10 @@ main_loop :: proc( ) {
 				if lua.isfunction(L, -1) {
 
 					if lua.pcall(L, 0, 0, 0) != 0 {
-						err_msg = lua.tostring(L, 1)
+						err_msg = lua.tostring(L, -1)
 						fmt.println(err_msg)
 						lua.pop(L, 1)
-						fmt.println(" Error in draw ", lua.tostring(L, -1))
+						fmt.println(" Error in draw ", err_msg)
 						return
 					}
 				}
@@ -123,7 +127,8 @@ main :: proc ( ) {
     lua.L_requiref(L, "sound" , sounds.luasound_open , 0)
      lua.L_requiref(L, "music" , music.luamusic_open , 0)
     lua.L_requiref(L, "gui" , gui.luagui_open , 0)
-
+    lua.L_requiref(L, "oslib" , os_.luaos_open , 0)
+    lua.L_requiref(L, "collision", collision.luacollision_open , 0)
 
 	// run the program with arguments
 
@@ -170,6 +175,7 @@ main :: proc ( ) {
 
 
 	main_loop()
+
 
 
 }

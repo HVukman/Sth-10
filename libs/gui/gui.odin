@@ -17,17 +17,11 @@ lua_button :: proc"c"(L: ^lua.State) -> i32{
 
 
 	context = runtime.default_context()
-	fmt.println("butt1")
-
-    rect_ := cast(^shapes.rectangle)lua.L_checkudata(L, 1, "RectMT")
-
-    lua.L_argcheck(L, rect_ != nil, 1, "Rectangle Expected")
-    fmt.println("butt2")
+    rect_ := cast(^shapes.rectangle)lua.L_checkudata(L, 1, "RectangleMT")
+   // lua.L_argcheck(L, rect_ != nil, 1, "Rectangle Expected")
     text := lua.L_checkstring(L, 2)
     rect := rl.Rectangle{rect_.x,rect_.y,rect_.width,rect_.height}
-    fmt.println("butt")
-    res := rl.GuiButton(rect,text)
-    fmt.println("butt2")
+    res :=  rl.GuiButton(rect,text)
     lua.pushboolean(L,b32(rl.GuiButton(rect,text)))
     return 1
 

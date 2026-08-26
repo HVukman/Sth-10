@@ -18,7 +18,7 @@ lua_shader_gc :: proc "c" (L: ^lua.State) -> i32 {
 }
 
 // load shader from file
-lua_load_shader :: proc(L: ^lua.State) -> i32 {
+lua_load_shader :: proc "c" (L: ^lua.State) -> i32 {
 
 	context = runtime.default_context()
 

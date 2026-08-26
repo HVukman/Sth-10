@@ -12,32 +12,36 @@ local gravity = 0.2
 local width = 1280
 local height = 640
 
+
+
 function init()
 
     window.title("Bouncing Ball")
     window.set_width_height(width,height)
+    window.set_target_fps(60)
+    speedx = 5.0
+    speedy = 2.0
 
-    Ball_speed = shapes_.newpoint(0.0,-0.4)
+
     P1 = shapes_.newcircle(250, 130,radius)
-
 
 end
 
 function update()
 
 
-    P1.x = P1.x + Ball_speed.x
-    P1.y = P1.y + Ball_speed.y
+    P1.x = P1.x + speedx
+    P1.y = P1.y + speedy
 
     if use_gravity then
        P1.y = P1.y + gravity
     end
 
     if P1.x >= (width - radius) or P1.x <= radius then
-           Ball_speed.x = -1.0*Ball_speed.x
+           speedx = -1.0*speedx
     end
     if P1.y >= (height - radius) or P1.y <= radius then
-           Ball_speed.y = -0.95*Ball_speed.y
+            speedy = -0.95*speedy
     end
 
     if keys.key_pressed(keys.SPACE) then

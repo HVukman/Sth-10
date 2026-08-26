@@ -23,7 +23,7 @@ function init()
     for i,v in ipairs(globbed) do
         local dummy = {}
         local info = oslib.file_info(v)
-        print("info ", info)
+
         dummy["name"] = info.name
         dummy["size"] = info.size
         table.insert(files_size,dummy)
@@ -43,7 +43,7 @@ function draw()
 
     draw_.clear_background(color.BLACK)
     local y=30
-    local size = 17
+    local size = 30
 
     local P = shapes_.newpoint(10,10)
     text.draw_text("files with *.lua pattern",P,size,color.WHITE)
@@ -54,11 +54,11 @@ function draw()
     end
 
 
-    local P2 = shapes_.newpoint(300,10)
+    local P2 = shapes_.newpoint(400,10)
     text.draw_text("files sorted by size",P2,size,color.WHITE)
-
+     P2.y=P2.y+size
     for i, v in ipairs(files_size) do
-     --   text.draw_text(v.name .. " " .. tostring(v.size), P2,size,color.WHITE)
+        text.draw_text(tostring(v.size), P2 , size,color.WHITE)
         P2.y=P2.y+size
     end
 end

@@ -29,6 +29,7 @@ function init()
     P3 = shapes_.newpoint(20, 600)
     circle_color = color.PURPLE
 
+    print("c1 x", C1.x)
 end
 
 function update()

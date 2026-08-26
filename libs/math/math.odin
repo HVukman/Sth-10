@@ -7,6 +7,8 @@ import "core:math"
 import "base:runtime"
 import rand "core:math/rand"
 import array "../array"
+import "core:math/noise"
+import shapes "../shapes"
 
 lua_binom :: proc "c" (L: ^lua.State) -> i32 {
 
@@ -183,7 +185,48 @@ lua_shufflearray :: proc "c" (L: ^lua.State) -> i32 {
     return 0
 }
 
+// mathlib.noise.noise_2d
+lua_noise2d :: proc "c" (L: ^lua.State) -> i32 {
+    context = runtime.default_context()
+    seed := lua.L_checknumber(L,1)
+    point :=  cast(^shapes.point)lua.L_checkudata(L, 2, "PointMT")
+    p :[2]f64
+    p.x = f64(point.x)
+    p.y = f64(point.y)
+    lua.pushinteger(L, lua.Integer(noise.noise_2d(i64(seed) , p )))
+    return 1
+}
 
+// mathlib.noise.noise_2dimprovex
+lua_noise2d_improvex :: proc "c" (L: ^lua.State) -> i32 {
+    context = runtime.default_context()
+    seed := lua.L_checknumber(L,1)
+    point :=  cast(^shapes.point)lua.L_checkudata(L, 2, "PointMT")
+    p :[2]f64
+    p.x = f64(point.x)
+    p.y = f64(point.y)
+    lua.pushinteger(L, lua.Integer(noise.noise_2d_improve_x(i64(seed) , p )))
+    return 1
+}
+
+
+
+// noise sub library
+create_noise_sublib :: proc(L: ^lua.State) {
+
+	context = runtime.default_context()
+
+    // Create a new table for the random sublibrary
+    lua.newtable(L)
+
+    lua.pushcfunction(L, lua_noise2d )
+    lua.setfield(L, -2, "noise_2d")
+
+    lua.pushcfunction(L, lua_noise2d_improvex )
+    lua.setfield(L, -2, "noise_2d_improve")
+
+
+}
 // random sub library
 create_random_sublib :: proc(L: ^lua.State) {
     context = runtime.default_context()
@@ -302,6 +345,9 @@ lua_openmath :: proc "c" (L: ^lua.State) -> i32 {
 
     create_random_sublib(L)
     lua.setfield(L, -2, "random")
+
+    create_noise_sublib(L)
+    lua.setfield(L, -2, "noise")
 
 	return 1
    }

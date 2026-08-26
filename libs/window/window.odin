@@ -5,7 +5,9 @@ import lua "vendor:lua/5.4"
 import "core:fmt"
 import "base:runtime"
 
-
+SCREEN_WIDTH :: 1280
+SCREEN_HEIGHT :: 640
+STANDARD_TITLE :: "STH-10 GAME"
 
 lua_get_frametime :: proc "c" (L: ^lua.State) -> i32
 {

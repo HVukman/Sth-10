@@ -65,8 +65,63 @@ lua_resize_image :: proc "c" (L: ^lua.State) -> i32 {
     context = runtime.default_context()
     img:= cast(^ImageData)lua.L_checkudata(L,1,"ImageMT")
     w:= lua.L_checknumber(L,2)
-    h:= lua.L_checknumber(L,2)
+    h:= lua.L_checknumber(L,3)
     rl.ImageResize(&img.image,i32(w),i32(h))
+    return 0
+
+}
+
+lua_rotate_image :: proc "c" (L: ^lua.State) -> i32 {
+
+
+    context = runtime.default_context()
+    img:= cast(^ImageData)lua.L_checkudata(L,1,"ImageMT")
+    r:= lua.L_checknumber(L,2)
+    rl.ImageRotate(&img.image, i32(r))
+    return 0
+
+}
+
+lua_rotate_imagecw :: proc "c" (L: ^lua.State) -> i32 {
+
+
+    context = runtime.default_context()
+    img:= cast(^ImageData)lua.L_checkudata(L,1,"ImageMT")
+
+    rl.ImageRotateCW(&img.image)
+    return 0
+
+}
+
+lua_rotate_imageccw :: proc "c" (L: ^lua.State) -> i32 {
+
+
+    context = runtime.default_context()
+    img:= cast(^ImageData)lua.L_checkudata(L,1,"ImageMT")
+
+    rl.ImageRotateCCW(&img.image)
+    return 0
+
+}
+
+
+lua_flip_image_vertical :: proc "c" (L: ^lua.State) -> i32 {
+
+
+    context = runtime.default_context()
+    img:= cast(^ImageData)lua.L_checkudata(L,1,"ImageMT")
+
+    rl.ImageFlipVertical(&img.image)
+    return 0
+
+}
+
+lua_flip_image_horizontal :: proc "c" (L: ^lua.State) -> i32 {
+
+
+    context = runtime.default_context()
+    img:= cast(^ImageData)lua.L_checkudata(L,1,"ImageMT")
+    rl.ImageFlipHorizontal(&img.image)
     return 0
 
 }
@@ -111,7 +166,7 @@ lua_load_image :: proc "c" (L: ^lua.State) -> i32 {
 			lua.L_setmetatable(L, "ImageMT")
 			return 1
 		}else{
-			fmt.println("invalid image  %s ", file)
+			fmt.println(" invalid image  %s ", file)
 			lua.L_error(L, "invalid image")
 			return 0
 		}
@@ -697,7 +752,12 @@ lua_imagelib := []lua.L_Reg{
 	{"dither_atkinson", lua_atkinson_dither},
 	{"copy_image", lua_copy_image},
 	{"crop_image", lua_copy_image},
+	{"flip_image_horizontal", lua_flip_image_horizontal},
+	{"flip_image_vertical", lua_flip_image_vertical},
 	{"resize_image", lua_resize_image},
+	{"rotate_image", lua_rotate_image},
+	{"rotate_image_cw", lua_rotate_imagecw},
+	{"rotate_image_ccw", lua_rotate_imageccw},
 	{"gen_checkered_image", lua_gen_checkered_image },
 	{"gen_square_gradient", lua_gen_square_gradient_image },
 	{"gen_radial_gradient", lua_gen_radial_gradient_image },

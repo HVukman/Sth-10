@@ -3,10 +3,7 @@ local shapes_ = require("shapes")
 local color = require("colors")
 local draw_ = require("drawing")
 local window = require("window")
-local array = require("array")
 local text   = require("text")
-
-
 
 function init()
 

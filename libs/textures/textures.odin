@@ -3,6 +3,7 @@ package textures
 
 import img "../images"
 import shapes "../shapes"
+import color "../colors"
 import "base:runtime"
 import "core:fmt"
 import "core:strings"
@@ -38,6 +39,62 @@ lua_valid_texture :: proc "c" (L: ^lua.State) -> i32 {
 	lua.pushboolean(L, b32(valid))
 
 	return 1
+}
+
+// draw as spritesheet
+// draw_as_spritesheet(texture, sprite_int, point, width, height )
+lua_draw_as_sprite :: proc "c" (L: ^lua.State) -> i32 {
+
+	text_ := cast(^TextureData)lua.L_checkudata(L, 1, "TextureMT")
+	sprite_int := i32(lua.L_checknumber(L,2))
+	point := cast(^shapes.point)lua.L_checkudata(L, 3, "PointMT")
+
+        xpos := point.x
+        ypos := point.y
+
+        sprite_w_b := lua.isnoneornil(L,4)
+        sprite_h_b := lua.isnoneornil(L,5)
+
+        width: i32
+        height :i32
+
+        if sprite_w_b{
+            width = 32
+        }else{
+            width= i32(lua.L_checknumber(L,4))
+        }
+        if sprite_w_b{
+            height = 32
+        }else{
+            height= i32(lua.L_checknumber(L,5))
+        }
+
+
+         //  standard: (0*32)%256
+        texture_x := (sprite_int*width)%(text_.texture.width*text_.texture.height)
+        // standard: ((6*32)//96)*32
+        // standard: ((6*height)//text_.height)*height
+        texture_y := ((sprite_int*height)/text_.texture.height)*height
+
+
+        rl.DrawTextureRec(text_.texture, {f32(texture_x), f32(texture_y), f32(width), f32(height)}, {xpos, ypos}, rl.WHITE)
+	return 0
+}
+
+// draw expert
+lua_draw_ex :: proc "c" (L: ^lua.State) -> i32 {
+
+	col := color.COLOR_ARRAY
+	text_ := cast(^TextureData)lua.L_checkudata(L, 1, "TextureMT")
+	point_ := cast(^shapes.point)lua.L_checkudata(L, 2, "PointMT")
+	pos : rl.Vector2
+	pos.x = point_.x
+	pos.y = point_.y
+	rot := lua.L_checknumber(L,3)
+	scale := lua.L_checknumber(L,4)
+	col_:= lua.L_checkinteger(L,5)
+	rl.DrawTextureEx(text_.texture, pos, f32(rot),f32(scale), col[col_])
+	return 0
 }
 
 lua_draw :: proc "c" (L: ^lua.State) -> i32 {
@@ -109,6 +166,8 @@ lua_texturelib := []lua.L_Reg {
 	{"texture_from_image", lua_texture_from_image},
 	{"load_texture", lua_load_texture },
 	{"draw", lua_draw},
+	{"draw_expert", lua_draw_ex},
+	{"draw_as_spritesheet",lua_draw_as_sprite},
 	{nil, nil},
 }
 

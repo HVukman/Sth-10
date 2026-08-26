@@ -271,28 +271,36 @@ lua_point_eq :: proc "c" (L: ^lua.State) -> i32 {
 // Get rectangle field (__index)
 lua_getrectindex :: proc "c" (L: ^lua.State) -> i32 {
     context = runtime.default_context()
-    rect_ := cast(^rectangle)lua.L_checkudata(L, 1, "RectMT")
+    rect_ := cast(^rectangle)lua.L_checkudata(L, 1, "RectangleMT")
     ind := lua.L_checkstring(L, 2)
 
-    switch ind {
-    case "x": fallthrough
-    case "X":
-        lua.pushnumber(L, lua.Number(rect_.x))
-        return 1
-    case "y": fallthrough
-    case "Y":
-        lua.pushnumber(L, lua.Number(rect_.y))
-        return 1
-    case "width":
-        lua.pushnumber(L, lua.Number(rect_.width))
-        return 1
-    case "height":
-        lua.pushnumber(L, lua.Number(rect_.height))
-        return 1
-    case:
+    if ind == "x" || ind=="X" {
+
+		lua.pushnumber(L,lua.Number(rect_.x))
+		return 1
+	}
+	else if ind == "y" || ind=="Y"{
+
+		lua.pushnumber(L,lua.Number(rect_.y))
+		return 1
+
+	}	else if ind == "width"{
+
+		lua.pushnumber(L,lua.Number(rect_.width))
+		return 1
+
+	}	else if ind == "height"{
+
+		lua.pushnumber(L,lua.Number(rect_.height))
+		return 1
+
+	}else{
+		fmt.println("no valid index")
         lua.pushnil(L)
         return 1
-    }
+	}
+
+
 }
 
 // Set rectangle field (__newindex)
@@ -306,18 +314,24 @@ lua_setrect :: proc "c" (L: ^lua.State) -> i32 {
     case "X": fallthrough
     case "x":
         rect_.x = f32(val)
+         return 1
     case "Y": fallthrough
     case "y":
         rect_.y = f32(val)
+        return 1
+    case "w": fallthrough
     case "width":
         rect_.width = f32(val)
+         return 1
+    case "h": fallthrough
     case "height":
         rect_.height = f32(val)
+         return 1
     case:
         lua.L_error(L, "invalid field: %s", ind)
         return 0
     }
-    return 0
+
 }
 
 // __tostring for rectangle
@@ -509,13 +523,17 @@ lua_set_ellipse_point :: proc "c" (L: ^lua.State) -> i32 {
     case "X": fallthrough
     case "x":
         ellipse_.center.x= f32(val)
+        return 1
     case "Y": fallthrough
     case "y":
         ellipse_.center.y  = f32(val)
+         return 1
     case "rh":
         ellipse_.radiush = f32(val)
+         return 1
     case "rv":
         ellipse_.radiusv  = f32(val)
+         return 1
     case:
         lua.L_error(L, "invalid field: %s", ind)
         return 0
@@ -578,10 +596,6 @@ lua_get_poylgon_point :: proc "c" (L: ^lua.State) -> i32 {
 
 lua_set_poylgon_point :: proc "c" (L: ^lua.State) -> i32 {
 
-	// get poylgon
-
-	lua_get_poylgon_point :: proc "c" (L: ^lua.State) -> i32 {
-
 		context = runtime.default_context()
 		poly_ := cast(^Polygon)lua.L_checkudata(L, 1, "PolygonMT")
 		context = runtime.default_context()
@@ -592,26 +606,28 @@ lua_set_poylgon_point :: proc "c" (L: ^lua.State) -> i32 {
     switch ind {
     case "radius":
     	poly_.radius = f32(val)
-    	return 0
+    	return 1
     case "rot": fallthrough
     case "rotation":
   		poly_.rotation = f32(val)
-   	return 0
+   		return 1
     case "sides":
   		poly_.sides = int(val)
-   	return 0
+   		return 1
+    case "X": fallthrough
     case "x":
 	   	poly_.center.x = f32(val)
-	   	return 0
+	   	return 1
+    case "Y": fallthrough
     case "y":
 	   	poly_.center.y = f32(val)
-	   	return 0
+	   	return 1
     case:
         lua.L_error(L, "invalid field: %s", ind)
         return 0
     }
 
-	}
+
 	return 0
 
 }
@@ -684,10 +700,7 @@ rect_meta := []lua.L_Reg{
     {"__index", lua_getrectindex},
     {"__newindex", lua_setrect},
     {"__tostring", lua_rect_tostring},
-  /* {"size", pointarray_size},
-    {"get", pointarray_index  },
-    {"set", pointarray_set  },
-    */
+
     {nil, nil},
 }
 
@@ -861,7 +874,6 @@ lua_openshapes :: proc "c" (L: ^lua.State) -> i32  {
 
 	lua.L_newmetatable(L, "PointMT")
 	lua.L_setfuncs(L, raw_data(point_meta), 0)
-	lua.L_newlib(L, shapeslib)
 
 
 	lua.L_newmetatable(L, "PointArrayMT")
@@ -870,7 +882,6 @@ lua_openshapes :: proc "c" (L: ^lua.State) -> i32  {
     lua.setfield(L, -2, "__index")
 
 
-    // Set __tostring
     lua.pushcfunction(L, pointarray_string)
     lua.setfield(L, -2, "__tostring")
 
