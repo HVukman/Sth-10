@@ -17,6 +17,7 @@ TextureData :: struct {
 }
 
 
+
 texture_meta := []lua.L_Reg {
 	/*   {"__index", lua_getpointindex  },
     {"__newindex",  lua_setpoint},

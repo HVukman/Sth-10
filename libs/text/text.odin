@@ -33,6 +33,14 @@ lua_draw_text_ex :: proc "c" (L: ^lua.State) -> i32 {
 	return 0
 }
 
+lua_draw_fps :: proc "c" (L: ^lua.State) -> i32 {
+
+	COLOR_ARRAY := colors.COLOR_ARRAY
+	pos:= cast(^shapes.point)lua.L_checkudata(L,1,"PointMT")
+	rl.DrawFPS(  i32(pos.x), i32(pos.y))
+	return 0
+}
+
 
 lua_draw_text :: proc "c" (L: ^lua.State) -> i32 {
 
@@ -108,6 +116,7 @@ text_meta := []lua.L_Reg{
 
 lua_textlib := []lua.L_Reg{
 	{"draw_text", lua_draw_text },
+	{"draw_fps", lua_draw_fps},
 	{"draw_text_ex", lua_draw_text_ex },
 	{"get_default_font",lua_get_default_font },
 	{"load_font",lua_load_font },

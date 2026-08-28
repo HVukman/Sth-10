@@ -191,7 +191,7 @@ create_easing_sublib :: proc(L: ^lua.State) {
 
 	context = runtime.default_context()
 
-    // Create a new table for the random sublibrary
+    // Create a new table for the easing sublibrary
     lua.newtable(L)
 
 

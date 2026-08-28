@@ -1,4 +1,4 @@
--- bnuyy.lua
+-- bnuyy2.lua
 local shapes_ = require("shapes")
 local color = require("colors")
 local draw_ = require("drawing")
@@ -8,17 +8,15 @@ local array = require("array")
 local text   = require("text")
 
 
-local limit = 65000
+local limit = 100000
 local ax = array.new(limit)
 local ay = array.new(limit)
 
 
 local Text_
-local P1     = shapes_.newpoint(1, 1)
+local P1 = shapes_.newpoint(1, 1)
 
-function init()
-
-
+local function init()
 
     local width = 1280
     local height = 640
@@ -39,22 +37,22 @@ function init()
 
 end
 
-function update()
-    local rand_ = math.random
-    for i = 1,(limit) do
-        ax[i] =  ax[i] + rand_(-1,1)
-        ay[i] =  ay[i] + rand_(-1,1)
-    end
-
-end
-
-function draw()
-
+local function draw()
     draw_.clear_background(color.BLACK)
     for i = 1, (limit) do
         texture2.draw_texture_handle(Text_, ax[i], ay[i])
     end
     text.draw_fps(P1)
-
-
 end
+
+
+local function update()
+    local rand_ = math.random
+    for i = 1,(limit) do
+        ax[i] =  ax[i] + rand_(-1,1)
+        ay[i] =  ay[i] + rand_(-1,1)
+    end
+    draw()
+end
+
+return{init,update}

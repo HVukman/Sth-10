@@ -18,9 +18,7 @@ local mousey  = 0
 local Text_
 local P1     = shapes_.newpoint(1, 1)
 
-function init()
-
-
+local function init()
 
     local width = 1280
     local height = 640
@@ -42,19 +40,7 @@ function init()
 
 end
 
-function update()
-
-    local rand_ = math.random
-    for i = 1,(limit) do
-        ax[i] =  ax[i] + rand_(-1,1)
-        ay[i] =  ay[i] + rand_(-1,1)
-    end
-
-
-end
-
-function draw()
-
+local function draw()
     draw_.clear_background(color.BLACK)
 
     for i = 1, (limit) do
@@ -63,3 +49,17 @@ function draw()
     end
     text.draw_fps(P1)
 end
+
+
+local function update()
+
+    local rand_ = math.random
+    for i = 1,(limit) do
+        ax[i] =  ax[i] + rand_(-1,1)
+        ay[i] =  ay[i] + rand_(-1,1)
+    end
+    draw()
+
+end
+
+return{init,update}

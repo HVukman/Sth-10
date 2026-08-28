@@ -349,5 +349,8 @@ lua_openmath :: proc "c" (L: ^lua.State) -> i32 {
     create_noise_sublib(L)
     lua.setfield(L, -2, "noise")
 
+    create_easing_sublib(L)
+    lua.setfield(L, -2, "easing")
+
 	return 1
    }

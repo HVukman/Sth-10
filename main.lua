@@ -83,8 +83,11 @@ function init()
     print("Texture valid:", Val)
 
     P4 = shapes_.newpoint(300, 300)
-    print("rand i63", mathlib.random.i63())
-    print("rand u32", mathlib.random.u32())
+    print("rand i63: ", mathlib.random.i63())
+    print("rand u32: ", mathlib.random.u32())
+
+    print("rand noise2d: ", mathlib.noise.noise_2d(math.random(98347),P1))
+
 
     Pico8 = text.load_font("examples/resources/pico-8.ttf")
     P5 = shapes_.newpoint(400, 600)
