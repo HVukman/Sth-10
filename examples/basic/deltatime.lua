@@ -21,7 +21,7 @@ function init()
     window.set_width_height(width,height)
     C1 = shapes_.newcircle(0, 150, radius)
     C2 = shapes_.newcircle(0, 330, radius)
-    window.set_target_fps(30)
+    window.set_target_fps(currfps)
 end
 
 function update()

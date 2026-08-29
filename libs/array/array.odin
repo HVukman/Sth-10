@@ -16,6 +16,10 @@ array :: struct {
     data: [^]f64,  // Raw pointer for faster access
 }
 
+intarray :: struct {
+    size: int,
+    data: [^]i32,
+}
 
 array_newindex :: proc "c" (L: ^lua.State ) -> i32 {
 
@@ -110,9 +114,13 @@ array_meta := []lua.L_Reg{
 
 arraylib := []lua.L_Reg{
     {"new",  luaarray_new},
+    {"newint",  lua_int_array_new },
     {"array_change",  array_change},
+    {"intarray_change",  lua_int_array_change},
     {nil, nil},
 }
+
+
 
 array_delete :: proc "c" (L: ^lua.State) -> i32 {
 
@@ -136,11 +144,20 @@ luaarray_new :: proc "c" (L: ^lua.State) -> i32 {
 	return 1
 }
 
+
+
 luaarray_open :: proc "c" (L: ^lua.State) -> i32 {
 
 	context = runtime.default_context()
+
 	lua.L_newmetatable(L, "array")
 	lua.L_setfuncs(L, raw_data(array_meta), 0)
-	lua.L_newlib(L, arraylib)
+
+	lua.L_newmetatable(L, "IntArrayMT")
+	lua.L_setfuncs(L, raw_data(int_meta ), 0)
+
+
+    lua.L_newlib(L, arraylib)
+
 	return 1
 }
