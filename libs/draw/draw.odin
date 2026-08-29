@@ -327,6 +327,17 @@ lua_rt_gc :: proc "c" (L: ^lua.State) -> i32 {
 	return 0
 
 }
+
+lua_draw_render_texture :: proc "c" (L: ^lua.State) -> i32 {
+
+	rt := cast(^render_texture_wrap)lua.L_checkudata(L, 1, "RenderTextureMT")
+	point_ := cast(^shapes.point)lua.L_checkudata(L, 2, "PointMT")
+	rl.DrawTexture(rt.render_texture.texture, i32(point_.x),i32(point_.y), rl.WHITE)
+	return 0
+
+}
+
+
 // Get camera field (__index)
 lua_camera_getindex :: proc "c" (L: ^lua.State) -> i32 {
 	context = runtime.default_context()
@@ -457,6 +468,7 @@ drawlib := []lua.L_Reg {
 	{"new_render_texture", lua_render_texture},
 	{"begin_texture_mode", lua_begin_texture_mode},
 	{"end_texture_mode", lua_end_texture_mode},
+	{"draw_render_texture", lua_draw_render_texture},
 	{"new_camera", lua_new_camera},
 	{"camera_set_zoom", lua_set_camera_zoom},
 	{"camera_set_target", lua_set_camera_target},
@@ -464,7 +476,7 @@ drawlib := []lua.L_Reg {
 	{"camera_set_rotation", lua_set_camera_rotation},
 	{"begin_mode_2D", lua_begin_2d },
 	{"end_mode_2D", lua_end_2d },
-		{"load_shader", lua_load_shader},
+	{"load_shader", lua_load_shader},
 	{nil, nil},
 }
 
