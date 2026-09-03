@@ -1,4 +1,4 @@
--- Dither an Image
+-- Dither an Image with different palette
 
 local draw_ = require("drawing")
 local window = require("window")
@@ -6,15 +6,13 @@ local color = require("colors")
 local image = require("image")
 local shapes_ = require("shapes")
 local texture = require("texture")
-local text_ = require("text")
 
 local Img_
 local Img2_
-local P1
-local P2
+local Img3_
 local Text_
 local Text2_
-
+local P1, P2
 
 local function init()
 
@@ -30,9 +28,12 @@ local function init()
     Img_ = image.load_image("examples/resources/parrots.png")
     P1 = shapes_.newpoint(3, 4)
     P2 = shapes_.newpoint(500, 4)
-    Img2_ = image.dither(Img_)
-    Text_ = texture.texture_from_image(Img_)
-    Text2_ = texture.texture_from_image(Img2_)
+    -- standard is 0 (or none see dither.lua)
+    -- 1 is black and white, 2 is 4 gameboy colors
+    Img2_ = image.dither(Img_, 1)
+    Img3_ = image.dither(Img_,2)
+    Text_ = texture.texture_from_image(Img2_)
+    Text2_ = texture.texture_from_image(Img3_)
 end
 
 
@@ -46,8 +47,8 @@ local function draw()
     local P4 = shapes_.newpoint(500, 500)
 
     local textsize = 22
-    text_.draw_text("Undithered", P3, textsize, color.GREEN)
-    text_.draw_text("4x4 Bayer Dither", P4, textsize, color.GREEN)
+    text_.draw_text("4x4 Bayer Dither (Black & White)", P3, textsize, color.GREEN)
+    text_.draw_text("4x4 Bayer Dither (Gameboy Colors)", P4, textsize, color.GREEN)
 end
 
 return {init,draw}

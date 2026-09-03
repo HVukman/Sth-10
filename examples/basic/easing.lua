@@ -11,7 +11,10 @@ local target_x      = 500
 local target_x2     = 450
 local target_r1_x   = 900
 
-function init()
+
+local P1,P2,P3,R1,R2,C1,C2
+
+local function init()
 
 
     local width = 1280
@@ -39,7 +42,17 @@ function init()
 
 end
 
-function update()
+local function draw()
+    draw_.clear_background(color.BLACK)
+    draw_.rectangle(R1, color.YELLOW)
+    draw_.lines_rectangle(R2, color.WHITE)
+    draw_.point(P3, color.RED)
+    draw_.circle(C1, color.PURPLE)
+    draw_.lines_circle(C2, color.SKYBLUE)
+end
+
+
+local function update()
 
     frame_counter = frame_counter + 1
 
@@ -59,17 +72,7 @@ function update()
 
         end
 
-
+        draw()
 end
 
-function draw()
-
-
-    draw_.clear_background(color.BLACK)
-    draw_.rectangle(R1, color.YELLOW)
-    draw_.lines_rectangle(R2, color.WHITE)
-    draw_.point(P3,color.RED)
-    draw_.circle(C1, color.PURPLE)
-    draw_.lines_circle(C2, color.SKYBLUE)
-
-end
+return{init,update}

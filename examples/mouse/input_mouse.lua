@@ -1,4 +1,4 @@
----
+--- input mouse
 ---
 local draw_ = require("drawing")
 local window = require("window")
@@ -9,13 +9,12 @@ local text   = require("text")
 local keys  = require("keys")
 local circle_color = nil
 
-function init()
-
+local function init()
     local width = 1280
     local height = 640
 
-    window.title( "Input Mouse")
-    window.set_window_position(200,100)
+    window.title("Input Mouse")
+    window.set_window_position(200, 100)
     window.set_width_height(width, height)
 
     -- make circle
@@ -24,7 +23,7 @@ function init()
     -- mouse x , y
     Mousex = 0
     Mousey = 0
-    P1 = shapes_.newpoint(10,10)
+    P1 = shapes_.newpoint(10, 10)
     P2 = shapes_.newpoint(10, 30)
     P3 = shapes_.newpoint(20, 600)
     circle_color = color.PURPLE
@@ -32,7 +31,21 @@ function init()
     print("c1 x", C1.x)
 end
 
-function update()
+local function draw()
+
+    draw_.clear_background(color.BLACK)
+    draw_.circle(C1, circle_color )
+    text.draw_text("move ball with mouse and click mouse buttons to change color", P1, 16, color.DARKGRAY)
+    text.draw_text("Press 'H' to toggle cursor visibility",P2, 20, color.DARKGRAY);
+
+    if mouse.is_cursor_hidden() then
+        text.draw_text("CURSOR HIDDEN", P3, 20, color.RED)
+    else
+        text.draw_text("CURSOR VISIBLE", P3, 20, color.LIME)
+    end
+end
+
+local function update()
 
     C1.x = mouse.get_mouse_x()
     C1.y = mouse.get_mouse_y()
@@ -49,30 +62,16 @@ function update()
         circle_color = color.BLACK
     end
 
-    if keys.key_down(keys.H) then
+    if keys.key_pressed(keys.H) then
         if mouse.is_cursor_hidden() then
             mouse.show_cursor()
         else
             mouse.hide_cursor()
         end
     end
+
+    draw()
 end
 
-function draw()
 
-
-
-    draw_.clear_background(color.BLACK)
-    draw_.circle(C1, circle_color )
-    text.draw_text("move ball with mouse and click mouse buttons to change color", P1, 16, color.DARKGRAY)
-    text.draw_text("Press 'H' to toggle cursor visibility",P2, 20, color.DARKGRAY);
-
-    if mouse.is_cursor_hidden() then
-        text.draw_text("CURSOR HIDDEN", P3, 20, color.RED)
-    else
-        text.draw_text("CURSOR VISIBLE", P3, 20, color.LIME)
-    end
-
-
-
-end
+return {init,update}

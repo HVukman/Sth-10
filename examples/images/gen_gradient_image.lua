@@ -1,4 +1,4 @@
--- Dither an Image
+-- generate gradient images
 
 local draw_ = require("drawing")
 local window = require("window")
@@ -6,15 +6,9 @@ local color = require("colors")
 local image = require("image")
 local shapes_ = require("shapes")
 local texture = require("texture")
-local text_ = require("text")
 
-local Img_
-local Img2_
-local P1
-local P2
-local Text_
-local Text2_
 
+local P1,Img_,Img2_,P2,Text_,Text2_
 
 local function init()
 
@@ -23,31 +17,28 @@ local function init()
     local height = 640
 
 
-    window.title("Dither Image")
+    window.title("Gradient Image")
     window.set_window_position(200,100)
     window.set_width_height(width,height)
 
-    Img_ = image.load_image("examples/resources/parrots.png")
+    --  image.gen_radial_gradient_image (width, height,density, color, color2 )
+    Img_ = image.gen_radial_gradient(640,480,0.1, color.BLACK, color.WHITE)
     P1 = shapes_.newpoint(3, 4)
-    P2 = shapes_.newpoint(500, 4)
-    Img2_ = image.dither(Img_)
     Text_ = texture.texture_from_image(Img_)
+
+    --  image.gen_square_gradient_image (width, height,density, color, color2 )
+    Img2_ = image.gen_square_gradient(640,480,0.01, color.RED, color.BLUE)
+    P2 = shapes_.newpoint(640, 4)
     Text2_ = texture.texture_from_image(Img2_)
+
 end
 
-
 local function draw()
-
     draw_.clear_background(color.BLACK)
     texture.draw(Text_, P1)
     texture.draw(Text2_, P2)
-
-    local P3 = shapes_.newpoint(3, 500)
-    local P4 = shapes_.newpoint(500, 500)
-
-    local textsize = 22
-    text_.draw_text("Undithered", P3, textsize, color.GREEN)
-    text_.draw_text("4x4 Bayer Dither", P4, textsize, color.GREEN)
 end
+
+
 
 return {init,draw}

@@ -14,8 +14,9 @@ local height = 640
 
 local currfps = 30
 
-function init()
+local C1, C2
 
+local function init()
 
     window.title("Delta Time")
     window.set_width_height(width,height)
@@ -24,8 +25,21 @@ function init()
     window.set_target_fps(currfps)
 end
 
-function update()
+local function draw()
+    draw_.clear_background(color.BLACK)
+    draw_.circle(C1, color.PURPLE)
+    draw_.circle(C2, color.GOLD)
 
+    local t1 = shapes_.newpoint(3, 4)
+    local fps = window.get_fps()
+    local frametime = window.get_frametime()
+    text.draw_text(tostring(fps), t1, 16, color.GREEN)
+    local t2 = shapes_.newpoint(3, 400)
+    text.draw_text(tostring(frametime), t2, 16, color.GREEN)
+end
+
+
+local function update()
 
     -- Multiply by 6.0 (an arbitrary value) in order to make the speed
        --visually closer to the other circle (at 60 fps), for comparison
@@ -43,19 +57,7 @@ function update()
                 if (currfps < 0) then currfps = 0 end
                     window.set_target_fps(currfps)
             end
-
+            draw()
 end
 
-function draw()
-
-    draw_.clear_background(color.BLACK)
-    draw_.circle(C1, color.PURPLE)
-    draw_.circle(C2, color.GOLD)
-
-    local t1 = shapes_.newpoint(3, 4)
-    local fps = window.get_fps()
-    local frametime = window.get_frametime()
-    text.draw_text(tostring(fps), t1, 16, color.GREEN)
-    local t2 = shapes_.newpoint(3, 400)
-    text.draw_text(tostring(frametime), t2, 16, color.GREEN)
-end
+return{init,update}

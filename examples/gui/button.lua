@@ -6,7 +6,7 @@ local color = require("colors")
 local shapes_ = require("shapes")
 local gui = require("gui")
 
-function init()
+local function init()
 
 
     local width = 1280
@@ -18,19 +18,17 @@ function init()
 
 end
 
-function update()
 
 
-
-
-end
-
-function draw()
+local function draw()
 
 
     draw_.clear_background(color.BLACK)
     local s = gui.button(R1,Buttontext)
     if s then
-        print("Pressed me")
+        print("Pressed me!")
     end
 end
+
+
+return {init,draw}
