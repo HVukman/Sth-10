@@ -1,15 +1,15 @@
 package text
 
 
-import "core:fmt"
+
 import lua "vendor:lua/5.4"
-import "core:c/libc"
 import "base:runtime"
 import rl "vendor:raylib"
 import "core:strings"
 import "core:os"
 import "../colors"
 import "../shapes"
+import img "../images"
 
 // Texture userdata wrapper
 FontData :: struct {
@@ -81,6 +81,41 @@ lua_load_font :: proc "c" (L: ^lua.State) -> i32 {
 
 }
 
+lua_load_font_from_image :: proc "c" (L: ^lua.State) -> i32 {
+
+	context = runtime.default_context()
+
+	img := cast(^img.ImageData)lua.L_checkudata(L, 1, "ImageMT")
+	COLOR_ARRAY := colors.COLOR_ARRAY
+	col_ := lua.L_checknumber(L,2)
+	first_ := lua.L_checkstring(L,3)
+	f:= strings.clone_from_cstring(first_)
+	rl.LoadFontFromImage(img.image, COLOR_ARRAY[i32(col_)], rune(f[0]))
+	return 1
+
+}
+
+lua_measure_text :: proc "c" (L: ^lua.State) -> i32 {
+
+	text := lua.L_checkstring(L,1)
+	fontsize := lua.L_checknumber(L,2)
+	lua.pushinteger(L, lua.Integer(rl.MeasureText(text, i32(fontsize))))
+	return 1
+}
+
+lua_measure_text_ex :: proc "c" (L: ^lua.State) -> i32 {
+
+	font_:= cast(^FontData)lua.L_checkudata(L,1,"FontMT")
+	text := lua.L_checkstring(L,2)
+	fontsize := lua.L_checknumber(L,3)
+	spacing := lua.L_checknumber(L,4)
+
+	sol := rl.MeasureTextEx(font_.font, text,  f32(fontsize) , f32(spacing))
+	return_p :=  cast(^shapes.point)lua.newuserdata(L, size_of(shapes.point))
+	return_p.x = sol.x
+	return_p.y = sol.y
+	return 1
+}
 
 lua_get_default_font :: proc "c" (L: ^lua.State) -> i32 {
 
@@ -118,8 +153,11 @@ lua_textlib := []lua.L_Reg{
 	{"draw_text", lua_draw_text },
 	{"draw_fps", lua_draw_fps},
 	{"draw_text_ex", lua_draw_text_ex },
+	{"measure_text" , lua_measure_text},
+	{"measure_text_ex" , lua_measure_text_ex},
 	{"get_default_font",lua_get_default_font },
 	{"load_font",lua_load_font },
+	{"load_font_from_image",lua_load_font_from_image },
     {nil, nil},
 }
 
