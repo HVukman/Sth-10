@@ -202,8 +202,8 @@ l_draw_triangle_lines :: proc "c" (L: ^lua.State) -> i32 {
 	v3.xx = tri_.p3.x
 	v3.yy = tri_.p3.y
 
-	col_ := lua.L_checkinteger(L, 2)
-	rl.DrawTriangleLines(v1, v2, v3, COLOR_ARRAY[col_])
+	col_ := lua.L_checknumber(L, 2)
+	rl.DrawTriangleLines(v1, v2, v3, COLOR_ARRAY[int(col_)])
 
 	return 0
 }
@@ -465,6 +465,11 @@ drawlib := []lua.L_Reg {
 	{"polygon", l_draw_full_polygon},
 	{"circle", l_draw_full_circle},
 	{"lines_circle", l_draw_lines_circle},
+	{"linear_spline", lua_draw_linear_spline},
+	{"catmull_rom_spline", lua_draw_catmull_rom_spline},
+	{"basis_spline", lua_draw_basis_spline},
+	{"bezier_cubic_spline", lua_draw_bezier_cubic_spline},
+	{"bezier_quadratic_spline", lua_draw_bezier_quadratic_spline},
 	{"new_render_texture", lua_render_texture},
 	{"begin_texture_mode", lua_begin_texture_mode},
 	{"end_texture_mode", lua_end_texture_mode},

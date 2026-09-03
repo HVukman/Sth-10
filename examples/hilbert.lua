@@ -30,7 +30,7 @@ local function hilbert(x, y, lg, i1, i2)
 end
 
 
-function init()
+local function init()
     local width = 1280
     local height = 640
     window.title("Hilbert Curve")
@@ -38,9 +38,7 @@ function init()
     hilbert(0, 0, wid, 0, 0)
 end
 
-function update()
-
-end
+-- just draw
 
 function draw()
     draw_.clear_background(color.BLACK)
@@ -51,3 +49,5 @@ function draw()
 
         end
 end
+
+return {init,draw}

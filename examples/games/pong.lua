@@ -50,7 +50,7 @@ local function collisions()
     end
 end
 
-function init()
+local function init()
     window.title("Pong")
 
     window.set_width_height(width, height)
@@ -67,7 +67,26 @@ function init()
     sound.set_volume(Snd, 1)
 end
 
-function update()
+
+local function draw()
+    draw_.clear_background(color.DARKGREEN)
+    draw_.rectangle(R1, color.WHITE)
+    draw_.rectangle(R2, color.WHITE)
+
+    local LP1 = shapes_.newpoint(width / 2, 0)
+    local LP2 = shapes_.newpoint(width / 2, height)
+
+    draw_.line(LP1, LP2, color.WHITE)
+    draw_.circle(ball, color.WHITE)
+
+    local textsize = 30
+    local playscore = shapes_.newpoint(100, 30)
+    local cpuscore = shapes_.newpoint(700, 30)
+    text.draw_text(tostring(player_score), playscore, textsize, color.WHITE)
+    text.draw_text(tostring(cpu_score), cpuscore, textsize, color.WHITE)
+end
+
+local function update()
     if keys.key_down(keys.UP) then
         P1.Y = P1.Y - paddlespeed
     elseif keys.key_down(keys.DOWN) then
@@ -96,22 +115,8 @@ function update()
     collisions()
 
     R1.Y = P1.Y
+
+    draw()
 end
 
-function draw()
-    draw_.clear_background(color.DARKGREEN)
-    draw_.rectangle(R1, color.WHITE)
-    draw_.rectangle(R2, color.WHITE)
-
-    local LP1 = shapes_.newpoint(width / 2, 0)
-    local LP2 = shapes_.newpoint(width / 2, height)
-
-    draw_.line(LP1, LP2, color.WHITE)
-    draw_.circle(ball, color.WHITE)
-
-    local textsize = 30
-    local playscore = shapes_.newpoint(100, 30)
-    local cpuscore = shapes_.newpoint(700, 30)
-    text.draw_text(tostring(player_score), playscore, textsize, color.WHITE)
-    text.draw_text(tostring(cpu_score), cpuscore, textsize, color.WHITE)
-end
+return{init,update}

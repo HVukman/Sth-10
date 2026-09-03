@@ -225,6 +225,9 @@ create_noise_sublib :: proc(L: ^lua.State) {
     lua.pushcfunction(L, lua_noise2d_improvex )
     lua.setfield(L, -2, "noise_2d_improve")
 
+    lua.pushcfunction(L, lua_perlin )
+    lua.setfield(L, -2, "perlin")
+
 
 }
 // random sub library
