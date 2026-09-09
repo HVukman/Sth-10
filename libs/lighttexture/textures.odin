@@ -53,6 +53,46 @@ texture_system_draw :: proc(handle: hm.Handle16, x, y: i32) {
 	}
 }
 
+//
+texture_system_draw_ex :: proc(handle: hm.Handle16, x, y,rot, scale: f32 ,  col_:i32) {
+	if e, ok := hm.dynamic_get(&entities, handle); ok {
+		col := color.COLOR_ARRAY
+		vec: rl.Vector2
+		vec.x = x
+		vec.y = y
+		rl.DrawTextureEx(e.texture_.texture, vec, rot, scale, col[col_])
+	} else {
+		fmt.println("not ok")
+
+	}
+}
+
+// Draw as sprite
+texture_system_draw_as_sprite :: proc(handle: hm.Handle16, sprite_int:i32,
+	xpos,ypos:f32 , width,height, col_:i32) {
+	if e, ok := hm.dynamic_get(&entities, handle); ok {
+		col := color.COLOR_ARRAY
+
+		//  standard: (0*32)%256
+		texture_x := (sprite_int * width) % (e.texture_.texture.width * e.texture_.texture.height)
+		// standard: ((6*32)//96)*32
+		// standard: ((6*height)//text_.height)*height
+		texture_y := ((sprite_int * height) / e.texture_.texture.height) * height
+
+
+		rl.DrawTextureRec(
+			e.texture_.texture,
+			{f32(texture_x) , f32(texture_y), f32(width), f32(height)},
+			{xpos, ypos},
+			col[col_],
+		)
+	} else {
+		fmt.println("not ok")
+
+	}
+}
+
+
 // free texture
 texture_system_free :: proc(handle: hm.Handle16) {
 	if e, ok := hm.dynamic_get(&entities, handle); ok {
@@ -132,7 +172,17 @@ lua_texture_free_handle :: proc "c" (L: ^lua.State) -> i32 {
 // draw_as_spritesheet(texture, sprite_int, point, width, height )
 lua_draw_as_sprite :: proc "c" (L: ^lua.State) -> i32 {
 
-	text_ := cast(^TextureData)lua.L_checkudata(L, 1, "TextureMT")
+	context = runtime.default_context()
+	// Retrieve the handle from the userdata
+	//
+	handle_ := cast(^Handle_Wrap)lua.L_checkudata(L, 1, "LightTextureMT")
+
+
+	packed := uintptr(handle_.handle)
+	handle: hm.Handle16
+	handle.idx = u8(packed >> 32)
+	handle.gen = u8(packed & 0xFFFFFFFF)
+
 	sprite_int := i32(lua.L_checknumber(L, 2))
 	point := cast(^shapes.point)lua.L_checkudata(L, 3, "PointMT")
 
@@ -142,6 +192,7 @@ lua_draw_as_sprite :: proc "c" (L: ^lua.State) -> i32 {
 	sprite_w_b := lua.isnoneornil(L, 4)
 	sprite_h_b := lua.isnoneornil(L, 5)
 
+	col := i32(lua.L_checknumber(L,6))
 	width: i32
 	height: i32
 
@@ -157,47 +208,42 @@ lua_draw_as_sprite :: proc "c" (L: ^lua.State) -> i32 {
 	}
 
 
-	//  standard: (0*32)%256
-	texture_x := (sprite_int * width) % (text_.texture.width * text_.texture.height)
-	// standard: ((6*32)//96)*32
-	// standard: ((6*height)//text_.height)*height
-	texture_y := ((sprite_int * height) / text_.texture.height) * height
+	// draw texture as sprite
+	texture_system_draw_as_sprite(handle, sprite_int,
+		xpos, ypos ,width,height, col)
 
-
-	rl.DrawTextureRec(
-		text_.texture,
-		{f32(texture_x), f32(texture_y), f32(width), f32(height)},
-		{xpos, ypos},
-		rl.WHITE,
-	)
 	return 0
 }
 
 // draw expert
 lua_draw_ex :: proc "c" (L: ^lua.State) -> i32 {
 
-	col := color.COLOR_ARRAY
-	text_ := cast(^TextureData)lua.L_checkudata(L, 1, "TextureMT")
-	point_ := cast(^shapes.point)lua.L_checkudata(L, 2, "PointMT")
-	pos: rl.Vector2
-	pos.x = point_.x
-	pos.y = point_.y
-	rot := lua.L_checknumber(L, 3)
-	scale := lua.L_checknumber(L, 4)
-	col_ := lua.L_checkinteger(L, 5)
-	rl.DrawTextureEx(text_.texture, pos, f32(rot), f32(scale), col[col_])
+
+	context = runtime.default_context()
+	// Retrieve the handle from the userdata
+	//
+	handle_ := cast(^Handle_Wrap)lua.L_checkudata(L, 1, "LightTextureMT")
+
+	x := f32(lua.L_checknumber(L, 2))
+	y := f32(lua.L_checknumber(L, 3))
+
+	rot := f32(lua.L_checknumber(L, 2))
+	scale := f32(lua.L_checknumber(L, 4))
+	col := i32(lua.L_checknumber(L, 2))
+
+	packed := uintptr(handle_.handle)
+	handle: hm.Handle16
+	handle.idx = u8(packed >> 32)
+	handle.gen = u8(packed & 0xFFFFFFFF)
+
+	// draw texture at x,y with rot and scale
+	texture_system_draw_ex(handle, x, y ,rot, scale, col)
+
+
+
 	return 0
 }
 
-lua_draw :: proc "c" (L: ^lua.State) -> i32 {
-
-	text_ := cast(^TextureData)lua.L_checkudata(L, 1, "TextureMT")
-	point_ := cast(^shapes.point)lua.L_checkudata(L, 2, "PointMT")
-	x := point_.x
-	y := point_.y
-	rl.DrawTexture(text_.texture, i32(x), i32(y), rl.WHITE)
-	return 0
-}
 
 
 lua_texture_from_image :: proc "c" (L: ^lua.State) -> i32 {
@@ -251,10 +297,8 @@ lua_texturelib := []lua.L_Reg {
 	//	{"texture_from_image", lua_texture_from_image},
 	{"load_texture", lua_load_texture_handle},
 	{"draw_texture", lua_texture_draw_handle},
-
-//	{"draw", lua_draw},
-//	{"draw_expert", lua_draw_ex},
-	//	{"draw_as_spritesheet",lua_draw_as_sprite},
+	{"draw_expert", lua_draw_ex},
+	{"draw_as_sprite",lua_draw_as_sprite},
 	{nil, nil},
 }
 

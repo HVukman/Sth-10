@@ -4,7 +4,7 @@ import rl "vendor:raylib"
 import lua "vendor:lua/5.4"
 import "core:fmt"
 import "core:slice"
-import "core:math"
+import math "core:math"
 import "base:runtime"
 import rand "core:math/rand"
 import array "../array"
@@ -149,4 +149,16 @@ lua_perlin_fbm :: proc "c" (L: ^lua.State) -> i32 {
 
 	lua.pushnumber(L, lua.Number(sol))
 	return 1
+}
+
+
+// poisson disk
+//
+Point2D :: struct {
+    x, y: f64,
+}
+
+PoissonDiskResult :: struct {
+    points: []Point2D,
+    grid: [][]i32, // Grid for debugging/visualization
 }

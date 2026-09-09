@@ -55,6 +55,33 @@ lua_draw_text :: proc "c" (L: ^lua.State) -> i32 {
 	return 0
 }
 
+lua_load_font_ex :: proc "c" (L: ^lua.State) -> i32 {
+
+	context = runtime.default_context()
+
+	path := lua.L_checkstring(L,1)
+	size := lua.L_checknumber(L,2)
+	codepointcount := lua.L_checknumber(L,3)
+	if os.is_file(strings.clone_from_cstring(path)) {
+		f := rl.LoadFontEx(path,i32(size),nil, i32(codepointcount))
+		if rl.IsFontValid(f){
+			f_ :=  cast(^FontData)lua.newuserdata(L, size_of(FontData))
+			f_.font = f
+			f_.fonttype = rl.FontType.DEFAULT
+			lua.L_setmetatable(L, "FontMT")
+			return 1
+		}else{
+			lua.L_error(L, "%s not a valid font", path)
+			return 0
+		}
+	}else{
+			lua.L_error(L, "%s not a valid path", path)
+			return 0
+	}
+
+}
+
+
 
 lua_load_font :: proc "c" (L: ^lua.State) -> i32 {
 
@@ -157,6 +184,7 @@ lua_textlib := []lua.L_Reg{
 	{"measure_text_ex" , lua_measure_text_ex},
 	{"get_default_font",lua_get_default_font },
 	{"load_font",lua_load_font },
+	{"load_font_expert",lua_load_font_ex },
 	{"load_font_from_image",lua_load_font_from_image },
     {nil, nil},
 }

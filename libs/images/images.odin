@@ -247,7 +247,7 @@ l_gen_cellular_image :: proc "c" (L: ^lua.State) -> i32 {
 	lua.L_setmetatable(L, "ImageMT")
 
 
-    return 0
+    return 1
 
 }
 
@@ -361,6 +361,7 @@ lua_imagelib := []lua.L_Reg{
 	{"gen_image_color", lua_gen_image_color},
 	{"dither", lua_dither},
 	{"dither_atkinson", lua_atkinson_dither},
+	{"dither_jarvis",lua_jarvis_dither},
 	{"copy_image", lua_copy_image},
 	{"crop_image", lua_crop_image},
 	{"flip_image_horizontal", lua_flip_image_horizontal},
@@ -377,7 +378,13 @@ lua_imagelib := []lua.L_Reg{
 	// draw
 	{"gen_image_blank", lua_gen_image_blank}, // for conveniance
 	{"draw_pixel", lua_draw_pixel},
-
+	{"draw_line", lua_draw_line},
+	{"draw_circle", lua_draw_circle},
+	{"draw_circle_lines", lua_draw_circle_lines},
+	{"draw_rectangle", lua_draw_rect},
+	{"draw_rectangle_lines", lua_draw_rect_lines},
+	{"draw_text", lua_draw_text},
+	{"draw_image", lua_draw_image},
     {nil, nil},
 }
 
