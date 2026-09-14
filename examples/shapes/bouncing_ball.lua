@@ -14,7 +14,7 @@ local height = 640
 
 
 
-function init()
+local function init()
 
     window.title("Bouncing Ball")
     window.set_width_height(width,height)
@@ -27,7 +27,14 @@ function init()
 
 end
 
-function update()
+
+local function draw()
+    draw_.clear_background(color.BLACK)
+    draw_.circle(P1, color.PURPLE)
+end
+
+
+local function update()
 
 
     P1.x = P1.x + speedx
@@ -53,13 +60,9 @@ function update()
        end
    end
 
-
-
-end
-
-function draw()
-
-    draw_.clear_background(color.BLACK)
-    draw_.circle(P1, color.PURPLE)
+   draw()
 
 end
+
+
+return {init,update}

@@ -1,4 +1,4 @@
---- should show all *.lua files in the previous folder
+--- should show all *.lua files in the folder that the program is run from
 --- sorted by size
 
 
@@ -16,7 +16,7 @@ local function compare_size(x,y)
     return x.size > y.size
 end
 
-function init()
+local function init()
     window.title("Globbed")
     globbed = oslib.glob("*.lua")
 
@@ -35,11 +35,9 @@ function init()
 
 end
 
-function update()
 
-end
 
-function draw()
+local function draw()
 
     draw_.clear_background(color.BLACK)
     local y=30
@@ -47,10 +45,10 @@ function draw()
 
     local P = shapes_.newpoint(10,10)
     text.draw_text("files with *.lua pattern",P,size,color.WHITE)
-    local P1 = shapes_.newpoint(10,30)
+    local P1 = shapes_.newpoint(10,31)
     for i, v in ipairs(globbed) do
         text.draw_text(v,P1,size,color.WHITE)
-        P1.y=P1.y+size
+        P1.y=P1.y+size+1
     end
 
 
@@ -62,3 +60,5 @@ function draw()
         P2.y=P2.y+size
     end
 end
+
+return {init,draw}

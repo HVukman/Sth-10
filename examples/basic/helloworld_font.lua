@@ -1,4 +1,4 @@
--- hello world
+-- hello world with pico-8 font
 local shapes_ = require("shapes")
 local color = require("colors")
 local draw_ = require("drawing")
@@ -7,8 +7,7 @@ local array = require("array")
 local text   = require("text")
 
 
-
-function init()
+local function init()
 
 
     local width = 1280
@@ -20,10 +19,7 @@ function init()
     Pico8 = text.load_font("examples/resources/pico-8.ttf")
 end
 
-function update()
 
-
-end
 
 function draw()
 
@@ -31,3 +27,5 @@ function draw()
     text.draw_text_ex(Pico8, "hello world", P1, 23, 5, color.PINK)
 
 end
+
+return {init,draw}

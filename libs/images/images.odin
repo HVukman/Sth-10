@@ -13,46 +13,6 @@ import "../colors"
 import shapes "../shapes"
 
 
-BLACK_WHITE :: 4
-BLACk_WHITE_PALETTE :: [BLACK_WHITE] rl.Color{rl.BLACK,rl.WHITE, rl.RAYWHITE , rl.BLANK}
-
-// https://www.color-hex.com/color-palette/45299
-GB_COLORS :: 5
-GB_COLOR_ARRAY :: [GB_COLORS]rl.Color { rl.Color{155,188,15,255},rl.Color{139,172,15,255},
-        rl.Color{48,98,48,255}, rl.Color{15,56,15,255} , rl.BLANK }
-
-
-
-color_enum :: enum{
-    COLOR_STANDARD = 0,
-    COLOR_BLACK_WHITE = 1,
-    COLOR_GB = 2,
-}
-
-COLORS_DITHER :: 26
-COLOR_ARRAY_DITHER :: [COLORS_DITHER]rl.Color{
-    rl.WHITE,rl.BLACK,
-    rl.GREEN,rl.LIGHTGRAY,
-    rl.GRAY,rl.DARKGRAY,
-    rl.YELLOW, rl.GOLD,
-    rl.ORANGE, rl.PINK,
-    rl.RED,rl.MAROON,
-    rl.GREEN,rl.LIME,
-    rl.DARKGREEN,rl.SKYBLUE,
-    rl.BLUE,rl.DARKBLUE,
-    rl.PURPLE,
-    rl.VIOLET,rl.DARKPURPLE,
-    rl.BEIGE,rl.DARKBROWN,
-    rl.BLANK,rl.MAGENTA,
-    rl.RAYWHITE,
-   /* // 4 gameboy colors
-    rl.Color{155,188,15,255},
-    rl.Color{139,172,15,255},
-    rl.Color{48,98,48,255},
-    rl.Color{15,56,15,255}
-    */
-}
-
 
 // Image userdata wrapper
 ImageData :: struct {
@@ -137,6 +97,27 @@ lua_blur_image :: proc "c" (L: ^lua.State) -> i32 {
 
 }
 
+lua_crop_image :: proc "c" (L: ^lua.State) -> i32 {
+
+
+	context = runtime.default_context()
+	COLOR_ARRAY := colors.COLOR_ARRAY
+
+	img:= cast(^ImageData)lua.L_checkudata(L,1,"ImageMT")
+	rect := cast(^shapes.rectangle)lua.L_checkudata(L,2,"RectangleMT")
+
+	rec : rl.Rectangle
+	rec.height = rect.height
+	rec.width = rect.width
+	rec.x = rect.x
+	rec.y = rect.y
+	rl.ImageCrop(&img.image , rec)
+
+	return 0
+
+}
+
+
 lua_copy_image :: proc "c" (L: ^lua.State) -> i32 {
 
 
@@ -178,6 +159,22 @@ lua_load_image :: proc "c" (L: ^lua.State) -> i32 {
 
 }
 
+lua_save_image :: proc "c" (L: ^lua.State) -> i32 {
+
+
+	context = runtime.default_context()
+	COLOR_ARRAY := colors.COLOR_ARRAY
+
+	img:= cast(^ImageData)lua.L_checkudata(L,1,"ImageMT")
+
+	file := lua.L_checkstring(L,2)
+	res := rl.ExportImage(img.image, file)
+	lua.pushboolean(L, b32(res))
+	return 1
+
+}
+
+
 // helper to calculate distance between colors
 difference_color :: proc(c1,c2: rl.Color) -> i32 {
 
@@ -190,367 +187,6 @@ difference_color :: proc(c1,c2: rl.Color) -> i32 {
     return dist_
 }
 
-// find closest palette helper for dither
-find_closest_palette_color :: proc (old_: rl.Color, palette: []rl.Color) -> rl.Color{
-
-
-    palette_len_ := len(palette)
-    closest_index := 0
-    for i:=0;i<palette_len_;i+=1{
-
-        if difference_color(palette[i],old_) < difference_color(palette[closest_index],old_){
-            closest_index = i
-        }
-    }
-
-
-    return palette[closest_index]
-}
-
-
-
-
-// 4x4 bayered ordered dithering
-dithered :: proc (image : rl.Image, palette_int : i32,
-    blank_:i32 = 22) -> rl.Image{
-
-
-    // slicing constants
-
-    col_array := COLOR_ARRAY_DITHER
-    bw_palette := BLACk_WHITE_PALETTE
-    gb_palette := GB_COLOR_ARRAY
-
-    newcol: rl.Color
-    palette : []rl.Color
-
-    switch palette_int{
-        case i32(color_enum.COLOR_STANDARD):
-            palette = col_array[:]
-        case i32(color_enum.COLOR_BLACK_WHITE):
-            palette = bw_palette[:]
-        case i32(color_enum.COLOR_GB):
-            palette = gb_palette[:]
-        case :
-            palette = col_array[:]
-    }
-
-
-    imagecolors := rl.LoadImageColors(image)
-    new_image := rl.GenImageColor(image.width, image.height, rl.BLACK)
-    blank_color := col_array[blank_]
-
-    for i:=0;i<int(image.height);i+=1{
-
-        for j:=0;j<int(image.width);j+=1{
-
-            // Calculate index (row-major order)
-            index := i * int(image.width) + j
-
-            old_color := imagecolors[index]
-
-            new_col: rl.Color
-
-
-            new_col = find_closest_palette_color(old_color,  palette)
-            imagecolors[index] = new_col
-            if (new_col != blank_color){
-
-            quant_error := old_color - new_col
-            err_r := f32(old_color.r) - f32(new_col.r)
-            err_g := f32(old_color.g) - f32(new_col.g)
-            err_b := f32(old_color.b) - f32(new_col.b)
-
-            // right pixel (7/16)
-            if j+1<int(image.width){
-                weight :f32= 7.0/16.0
-                newindex := i * int(image.width) + (j+1)
-
-                r := f32(imagecolors[newindex].r)
-                r += err_r * weight
-                r = math.clamp(r, 0, 255)
-                imagecolors[newindex].r = u8(r)
-
-                g := f32(imagecolors[newindex].g)
-                g += err_g * weight
-                g = math.clamp(g, 0, 255)
-                imagecolors[newindex].g = u8(g)
-
-                b := f32(imagecolors[newindex].b)
-                b += err_b * weight
-                b = math.clamp(b, 0, 255)
-                imagecolors[newindex].b = u8(b)
-            }
-            // bottom right (1/16)
-            if i+1<int(image.height) && j+1<int(image.width){
-
-                weight :f32= 1.0/16.0
-                newindex := (i+1) * int(image.width) + (j+1)
-                r := f32(imagecolors[newindex].r)
-                r += err_r * weight
-                r = math.clamp(r, 0, 255)
-                imagecolors[newindex].r = u8(r)
-
-                g := f32(imagecolors[newindex].g)
-                g += err_g * weight
-                g = math.clamp(g, 0, 255)
-                imagecolors[newindex].g = u8(g)
-
-                b := f32(imagecolors[newindex].b)
-                b += err_b * weight
-                b = math.clamp(b, 0, 255)
-                imagecolors[newindex].b = u8(b)
-            }
-            // bottom (5/16)
-             if i+1<int(image.height){
-                weight :f32= 5.0/16.0
-                newindex := (i+1) * int(image.width) + (j)
-                r := f32(imagecolors[newindex].r)
-                r += err_r * weight
-                r = math.clamp(r, 0, 255)
-                imagecolors[newindex].r = u8(r)
-
-                g := f32(imagecolors[newindex].g)
-                g += err_g * weight
-                g = math.clamp(g, 0, 255)
-                imagecolors[newindex].g = u8(g)
-
-                b := f32(imagecolors[newindex].b)
-                b += err_b * weight
-                b = math.clamp(b, 0, 255)
-                imagecolors[newindex].b = u8(b)
-            }
-            // bottom left (3/16)
-            if i+1 < int(image.height) && j-1 > 0{
-                weight :f32= 3.0/16.0
-                newindex := (i+1) * int(image.width) + (j-1)
-
-                r := f32(imagecolors[newindex].r)
-                r += err_r * weight
-                r = math.clamp(r, 0, 255)
-                imagecolors[newindex].r = u8(r)
-
-                g := f32(imagecolors[newindex].g)
-                g += err_g * weight
-                g = math.clamp(g, 0, 255)
-                imagecolors[newindex].g = u8(g)
-
-                b := f32(imagecolors[newindex].b)
-                b += err_b * weight
-                b = math.clamp(b, 0, 255)
-                imagecolors[newindex].b = u8(b)
-            }
-
-            }else{
-                imagecolors[index] = rl.BLANK
-            }
-
-    }
-    }
-
-    for i := 0; i < int(new_image.height); i += 1 {
-       // fmt.println("i write new", i)
-        for j := 0; j < int(new_image.width); j += 1
-        {
-            index := i * int(new_image.width) + j
-            rl.ImageDrawPixel(&new_image, i32(j), i32(i), imagecolors[index])
-        }
-    }
-
-
-	return new_image
-}
-
-// atkinson dither
-atkinson_dither :: proc (image : rl.Image, palette_int : i32,
-    blank_:i32 = 22) -> rl.Image{
-
-    // slicing constants
-
-    col_array := COLOR_ARRAY_DITHER
-    bw_palette := BLACk_WHITE_PALETTE
-    gb_palette := GB_COLOR_ARRAY
-
-    newcol: rl.Color
-    palette : []rl.Color
-
-    switch palette_int{
-        case i32(color_enum.COLOR_STANDARD):
-            palette = col_array[:]
-        case i32(color_enum.COLOR_BLACK_WHITE):
-            palette = bw_palette[:]
-        case i32(color_enum.COLOR_GB):
-            palette = gb_palette[:]
-        case :
-            palette = col_array[:]
-    }
-
-
-    imagecolors := rl.LoadImageColors(image)
-    new_image := rl.GenImageColor(image.width, image.height, rl.BLACK)
-    blank_color := col_array[blank_]
-
-    for i:=0;i<int(image.height);i+=1{
-
-        for j:=0;j<int(image.width);j+=1{
-
-            // Calculate index (row-major order)
-            index := i * int(image.width) + j
-
-            old_color := imagecolors[index]
-
-            new_col: rl.Color
-
-
-            new_col = find_closest_palette_color(old_color, palette)
-            imagecolors[index] = new_col
-            if (new_col != blank_color){
-
-            quant_error := old_color - new_col
-            err_r := f32(old_color.r) - f32(new_col.r)
-            err_g := f32(old_color.g) - f32(new_col.g)
-            err_b := f32(old_color.b) - f32(new_col.b)
-
-            weight :f32= 1.0/8.0
-            /*
-            * is the current point
-                     *   1/8  1/8
-            .. 1/8  1/8  1/8  ..
-            ..      1/8
-
-             6 points dither
-
-            */
-            // right pixel
-            if j+1<int(image.width){
-
-                newindex := i * int(image.width) + (j+1)
-                r := f32(imagecolors[newindex].r)
-                r += err_r * weight
-                r = math.clamp(r, 0, 255)
-                imagecolors[newindex].r = u8(r)
-
-                g := f32(imagecolors[newindex].g)
-                g += err_g * weight
-                g = math.clamp(g, 0, 255)
-                imagecolors[newindex].g = u8(g)
-
-                b := f32(imagecolors[newindex].b)
-                b += err_b * weight
-                b = math.clamp(b, 0, 255)
-                imagecolors[newindex].b = u8(b)
-            }
-            // second right pixel (7/16)
-            if j+2<int(image.width){
-
-                newindex := i * int(image.width) + (j+2)
-                r := f32(imagecolors[newindex].r)
-                r += err_r * weight
-                r = math.clamp(r, 0, 255)
-                imagecolors[newindex].r = u8(r)
-
-                g := f32(imagecolors[newindex].g)
-                g += err_g * weight
-                g = math.clamp(g, 0, 255)
-                imagecolors[newindex].g = u8(g)
-
-                b := f32(imagecolors[newindex].b)
-                b += err_b * weight
-                b = math.clamp(b, 0, 255)
-                imagecolors[newindex].b = u8(b)
-            }
-
-            // bottom left
-            if i+1<int(image.height) && j-1>0{
-                newindex := (i+1) * int(image.width) + (j-1)
-                r := f32(imagecolors[newindex].r)
-                r += err_r * weight
-                r = math.clamp(r, 0, 255)
-                imagecolors[newindex].r = u8(r)
-
-                g := f32(imagecolors[newindex].g)
-                g += err_g * weight
-                g = math.clamp(g, 0, 255)
-                imagecolors[newindex].g = u8(g)
-
-                b := f32(imagecolors[newindex].b)
-                b += err_b * weight
-                b = math.clamp(b, 0, 255)
-                imagecolors[newindex].b = u8(b)
-            }
-             // bottom
-            if i+1<int(image.height) {
-                newindex := (i+1) * int(image.width) + (j)
-                r := f32(imagecolors[newindex].r)
-                r += err_r * weight
-                r = math.clamp(r, 0, 255)
-                imagecolors[newindex].r = u8(r)
-
-                g := f32(imagecolors[newindex].g)
-                g += err_g * weight
-                g = math.clamp(g, 0, 255)
-                imagecolors[newindex].g = u8(g)
-
-                b := f32(imagecolors[newindex].b)
-                b += err_b * weight
-                b = math.clamp(b, 0, 255)
-                imagecolors[newindex].b = u8(b)
-            }
-            // bottom right
-            if i+1<int(image.height) && j+1<int(image.width) {
-                newindex := (i+1) * int(image.width) + (j+1)
-                r := f32(imagecolors[newindex].r)
-                r += err_r * weight
-                r = math.clamp(r, 0, 255)
-                imagecolors[newindex].r = u8(r)
-
-                g := f32(imagecolors[newindex].g)
-                g += err_g * weight
-                g = math.clamp(g, 0, 255)
-                imagecolors[newindex].g = u8(g)
-
-                b := f32(imagecolors[newindex].b)
-                b += err_b * weight
-                b = math.clamp(b, 0, 255)
-                imagecolors[newindex].b = u8(b)
-            }
-            // second bottom
-            if i+2<int(image.height)  {
-                newindex := (i+2) * int(image.width) + (j)
-                r := f32(imagecolors[newindex].r)
-                r += err_r * weight
-                r = math.clamp(r, 0, 255)
-                imagecolors[newindex].r = u8(r)
-
-                g := f32(imagecolors[newindex].g)
-                g += err_g * weight
-                g = math.clamp(g, 0, 255)
-                imagecolors[newindex].g = u8(g)
-
-                b := f32(imagecolors[newindex].b)
-                b += err_b * weight
-                b = math.clamp(b, 0, 255)
-                imagecolors[newindex].b = u8(b)
-            }
-            }else{
-                imagecolors[index] = rl.BLANK
-            }
-
-    }
-    }
-
-    for i := 0; i < int(new_image.height); i += 1 {
-       // fmt.println("i write new", i)
-        for j := 0; j < int(new_image.width); j += 1
-        {
-            index := i * int(new_image.width) + j
-            rl.ImageDrawPixel(&new_image, i32(j), i32(i), imagecolors[index])
-        }
-    }
-
-
-	return new_image
-}
 
 // checkered pattern
 // gen_checkered_image (width, height, checksx, checksy, color, color2 )
@@ -611,7 +247,7 @@ l_gen_cellular_image :: proc "c" (L: ^lua.State) -> i32 {
 	lua.L_setmetatable(L, "ImageMT")
 
 
-    return 0
+    return 1
 
 }
 
@@ -654,32 +290,6 @@ lua_crop :: proc "c" (L: ^lua.State) -> i32 {
 
 	rl.ImageCrop(&img.image, rl_)
 	return 0
-}
-
-lua_atkinson_dither :: proc "c" (L: ^lua.State) -> i32 {
-
-	context = runtime.default_context()
-	COLOR_ARRAY := colors.COLOR_ARRAY
-
-	img:= cast(^ImageData)lua.L_checkudata(L,1,"ImageMT")
-
-	img2 := cast(^ImageData)lua.newuserdata(L, size_of(ImageData))
-	img2.image = atkinson_dither(img.image,0)
-	lua.L_setmetatable(L, "ImageMT")
-	return 1
-}
-
-lua_dither :: proc "c" (L: ^lua.State) -> i32 {
-
-	context = runtime.default_context()
-	COLOR_ARRAY := colors.COLOR_ARRAY
-
-	img:= cast(^ImageData)lua.L_checkudata(L,1,"ImageMT")
-
-	img2 := cast(^ImageData)lua.newuserdata(L, size_of(ImageData))
-	img2.image = dithered(img.image,0)
-	lua.L_setmetatable(L, "ImageMT")
-	return 1
 }
 
 lua_gen_image_text :: proc "c" (L: ^lua.State) -> i32 {
@@ -747,11 +357,13 @@ image_meta := []lua.L_Reg{
 
 lua_imagelib := []lua.L_Reg{
 	{"load_image", lua_load_image},
+	{"save_image", lua_save_image},
 	{"gen_image_color", lua_gen_image_color},
 	{"dither", lua_dither},
 	{"dither_atkinson", lua_atkinson_dither},
+	{"dither_jarvis",lua_jarvis_dither},
 	{"copy_image", lua_copy_image},
-	{"crop_image", lua_copy_image},
+	{"crop_image", lua_crop_image},
 	{"flip_image_horizontal", lua_flip_image_horizontal},
 	{"flip_image_vertical", lua_flip_image_vertical},
 	{"resize_image", lua_resize_image},
@@ -763,6 +375,16 @@ lua_imagelib := []lua.L_Reg{
 	{"gen_radial_gradient", lua_gen_radial_gradient_image },
 	{"gen_cellular", l_gen_cellular_image  },
 	{"gen_text", lua_gen_image_text  },
+	// draw
+	{"gen_image_blank", lua_gen_image_blank}, // for conveniance
+	{"draw_pixel", lua_draw_pixel},
+	{"draw_line", lua_draw_line},
+	{"draw_circle", lua_draw_circle},
+	{"draw_circle_lines", lua_draw_circle_lines},
+	{"draw_rectangle", lua_draw_rect},
+	{"draw_rectangle_lines", lua_draw_rect_lines},
+	{"draw_text", lua_draw_text},
+	{"draw_image", lua_draw_image},
     {nil, nil},
 }
 

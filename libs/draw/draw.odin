@@ -12,6 +12,21 @@ render_texture_wrap :: struct {
 	render_texture: rl.RenderTexture,
 }
 
+// blend mode
+lua_blend_mode :: proc "c" (L: ^lua.State) -> i32{
+
+	mode:= lua.L_checkinteger(L,1)
+	rl.BeginBlendMode(rl.BlendMode(int(mode)))
+
+	return 0
+}
+
+// end blend mode
+lua_end_blend_mode :: proc "c" (L: ^lua.State) -> i32{
+
+	rl.EndBlendMode()
+	return 0
+}
 
 // clear background
 //
@@ -202,8 +217,8 @@ l_draw_triangle_lines :: proc "c" (L: ^lua.State) -> i32 {
 	v3.xx = tri_.p3.x
 	v3.yy = tri_.p3.y
 
-	col_ := lua.L_checkinteger(L, 2)
-	rl.DrawTriangleLines(v1, v2, v3, COLOR_ARRAY[col_])
+	col_ := lua.L_checknumber(L, 2)
+	rl.DrawTriangleLines(v1, v2, v3, COLOR_ARRAY[int(col_)])
 
 	return 0
 }
@@ -327,6 +342,17 @@ lua_rt_gc :: proc "c" (L: ^lua.State) -> i32 {
 	return 0
 
 }
+
+lua_draw_render_texture :: proc "c" (L: ^lua.State) -> i32 {
+
+	rt := cast(^render_texture_wrap)lua.L_checkudata(L, 1, "RenderTextureMT")
+	point_ := cast(^shapes.point)lua.L_checkudata(L, 2, "PointMT")
+	rl.DrawTexture(rt.render_texture.texture, i32(point_.x),i32(point_.y), rl.WHITE)
+	return 0
+
+}
+
+
 // Get camera field (__index)
 lua_camera_getindex :: proc "c" (L: ^lua.State) -> i32 {
 	context = runtime.default_context()
@@ -454,9 +480,15 @@ drawlib := []lua.L_Reg {
 	{"polygon", l_draw_full_polygon},
 	{"circle", l_draw_full_circle},
 	{"lines_circle", l_draw_lines_circle},
+	{"linear_spline", lua_draw_linear_spline},
+	{"catmull_rom_spline", lua_draw_catmull_rom_spline},
+	{"basis_spline", lua_draw_basis_spline},
+	{"bezier_cubic_spline", lua_draw_bezier_cubic_spline},
+	{"bezier_quadratic_spline", lua_draw_bezier_quadratic_spline},
 	{"new_render_texture", lua_render_texture},
 	{"begin_texture_mode", lua_begin_texture_mode},
 	{"end_texture_mode", lua_end_texture_mode},
+	{"draw_render_texture", lua_draw_render_texture},
 	{"new_camera", lua_new_camera},
 	{"camera_set_zoom", lua_set_camera_zoom},
 	{"camera_set_target", lua_set_camera_target},
@@ -464,7 +496,7 @@ drawlib := []lua.L_Reg {
 	{"camera_set_rotation", lua_set_camera_rotation},
 	{"begin_mode_2D", lua_begin_2d },
 	{"end_mode_2D", lua_end_2d },
-		{"load_shader", lua_load_shader},
+	{"load_shader", lua_load_shader},
 	{nil, nil},
 }
 

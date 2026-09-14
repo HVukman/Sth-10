@@ -5,7 +5,9 @@ local draw_ = require("drawing")
 local window = require("window")
 local text   = require("text")
 
-function init()
+
+local P1
+local function init()
 
 
     local width = 1280
@@ -17,14 +19,11 @@ function init()
 
 end
 
-function update()
-
-
-end
-
-function draw()
+local function draw()
 
     draw_.clear_background(color.BLACK)
     text.draw_text("hello world", P1, 16, color.GREEN)
 
 end
+
+return{init,draw}

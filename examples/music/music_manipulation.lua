@@ -12,9 +12,11 @@ local pan     = 0.0
 local vol     = 1.0
 local dummy = 0.01
 -- music has to be loaded in init at least
---    will not work
+--    will not work here
 --    track = music.load_music("examples/resources/Sample.mp3")
-function init()
+--
+--
+local function init()
 
     track = music.load_music("examples/resources/Sample.mp3")
     P2 = shapes_.newpoint(100, 100)
@@ -28,7 +30,19 @@ function init()
     music.play_music(track)
 end
 
-function update()
+local function draw()
+    local textsize = 20
+    draw_.clear_background(color.BLACK)
+    text.draw_text("you should hear music", P2, textsize, color.GREEN)
+    text.draw_text(played_, P3, textsize, color.GREEN)
+    text.draw_text("Up down to change pan, left right to change pitch, x y to change volume", P4, textsize - 2,
+        color.GREEN)
+    text.draw_text(string.format("Pitch %.2f Pan %.2f Vol %.2f ", pitch, pan, vol), P5, textsize, color.GREEN)
+    text.draw_text("P to pause, resume and restart, S to stop", P6, textsize, color.GREEN)
+end
+
+
+local function update()
 
     music.update_music_stream(track)
     played_ = string.format("played sec %.2f ", music.get_time_played(track))
@@ -95,15 +109,8 @@ function update()
     music.set_pitch(track, pitch)
     music.set_pan(track, pan)
     music.set_volume(track, vol)
+
+    draw()
 end
 
-function draw()
-
-    local textsize = 20
-    draw_.clear_background(color.BLACK)
-    text.draw_text("you should hear music", P2, textsize, color.GREEN)
-    text.draw_text(played_, P3, textsize, color.GREEN)
-    text.draw_text("Up down to change pan, left right to change pitch, x y to change volume", P4, textsize - 2, color.GREEN)
-    text.draw_text(string.format("Pitch %.2f Pan %.2f Vol %.2f ", pitch, pan, vol), P5, textsize, color.GREEN)
-     text.draw_text("P to pause and resume, S to stop", P6, textsize, color.GREEN)
-end
+return{init,update}

@@ -24,9 +24,11 @@ import sounds "libs/sounds"
 import text "libs/text"
 import texture "libs/textures"
 import window "libs/window"
+import shader "libs/shader"
 
 import hm "core:container/handle_map"
-import texture2 "libs/texture2"
+import lighttexture "libs/lighttexture"
+import lightarray "libs/lightarray"
 
 main_loop :: proc() {
 
@@ -116,8 +118,11 @@ draw_func: cstring
 
 main :: proc() {
 
-	hm.dynamic_init(&texture2.entities, context.allocator)
-	defer hm.dynamic_destroy(&texture2.entities)
+	hm.dynamic_init(&lighttexture.entities, context.allocator)
+	defer hm.dynamic_destroy(&lighttexture.entities)
+
+	hm.dynamic_init(&lightarray.entities, context.allocator)
+	defer hm.dynamic_destroy(&lightarray.entities)
 
 	L = lua.L_newstate() // Create a new Lua state
 	defer lua.close(L) // Clean up later
@@ -147,9 +152,9 @@ main :: proc() {
 	lua.L_requiref(L, "oslib", os_.luaos_open, 0)
 	lua.L_requiref(L, "collision", collision.luacollision_open, 0)
 	lua.L_requiref(L, "gamepad", gamepad.luagamepad_open, 0)
-
-	lua.L_requiref(L, "texture2", texture2.lua_opentexture, 0)
-
+	lua.L_requiref(L, "shader", shader.luashader_open, 0)
+	lua.L_requiref(L, "lighttexture", lighttexture.lua_opentexture, 0)
+	lua.L_requiref(L, "lightarray", lightarray.lualightarray_open , 0)
 	// run the program with arguments
 
 
