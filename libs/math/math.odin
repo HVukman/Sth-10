@@ -1,5 +1,7 @@
 package mathlib
 
+import "core:crypto/_chacha20/ref"
+import "core:container/intrusive/list"
 import rl "vendor:raylib"
 import lua "vendor:lua/5.4"
 import "core:fmt"
@@ -99,79 +101,6 @@ mathlib := []lua.L_Reg{
     {nil, nil},
 }
 
-// mathlib.random.normal(mean, stddev)
-lua_randomnormal:: proc "c" (L: ^lua.State) -> i32 {
-
-    context = runtime.default_context()
-
-    mean := f32(lua.L_checknumber(L, 1))
-    dev := f32(lua.L_checknumber(L, 2))
-    lua.pushnumber(L, lua.Number(rand.float32_normal(mean,dev)))
-    return 1
-}
-
-// mathlib.random.pareto(a,b)
-lua_randompareto:: proc "c" (L: ^lua.State) -> i32 {
-
-    context = runtime.default_context()
-
-    alpha := f32(lua.L_checknumber(L, 1))
-    beta:= f32(lua.L_checknumber(L,2))
-    lua.pushnumber(L, lua.Number(rand.float32_pareto(alpha,beta)))
-    return 1
-}
-
-// mathlib.random.gamma(a,b)
-lua_randomgamma:: proc "c" (L: ^lua.State) -> i32 {
-
-    context = runtime.default_context()
-
-    a := f32(lua.L_checknumber(L, 1))
-    b := f32(lua.L_checknumber(L, 2))
-    lua.pushnumber(L, lua.Number(rand.float32_gamma(a,b)))
-    return 1
-}
-
-// mathlib.random.laplace(mean, b)
-lua_randomlaplace:: proc "c" (L: ^lua.State) -> i32 {
-
-    context = runtime.default_context()
-
-    mean := f64(lua.L_checknumber(L, 1))
-    b := f64(lua.L_checknumber(L, 2))
-    lua.pushnumber(L, lua.Number(rand.float64_laplace(mean,b)))
-    return 1
-}
-
-// mathlib.random.seed(seed)
-lua_randomseed :: proc "c" (L: ^lua.State) -> i32 {
-    context = runtime.default_context()
-
-    seed := lua.L_checkinteger(L, 1)
-    rand.reset(u64(seed))
-    return 0
-}
-
-// mathlib.random.i63
-lua_randomi63 :: proc "c" (L: ^lua.State) -> i32 {
-    context = runtime.default_context()
-    lua.pushinteger(L, lua.Integer(rand.int63()))
-    return 1
-}
-
-// mathlib.random.u32
-lua_randomu32 :: proc "c" (L: ^lua.State) -> i32 {
-    context = runtime.default_context()
-    lua.pushinteger(L, lua.Integer(rand.uint32()))
-    return 1
-}
-
-// mathlib.random.u64
-lua_randomu64 :: proc "c" (L: ^lua.State) -> i32 {
-    context = runtime.default_context()
-    lua.pushinteger(L, lua.Integer(rand.uint64()))
-    return 1
-}
 
 // mathlib.random.shuffle(a,lena)
 lua_shufflearray :: proc "c" (L: ^lua.State) -> i32 {
@@ -225,46 +154,8 @@ create_noise_sublib :: proc(L: ^lua.State) {
     lua.pushcfunction(L, lua_noise2d_improvex )
     lua.setfield(L, -2, "noise_2d_improve")
 
-
-}
-// random sub library
-create_random_sublib :: proc(L: ^lua.State) {
-    context = runtime.default_context()
-
-    // Create a new table for the random sublibrary
-    lua.newtable(L)
-
-
-    lua.pushcfunction(L, lua_randomseed)
-    lua.setfield(L, -2, "newseed")
-
-
-    lua.pushcfunction(L, lua_randomgamma)
-    lua.setfield(L, -2, "gamma")
-
-
-    lua.pushcfunction(L, lua_randomlaplace)
-    lua.setfield(L, -2, "laplace")
-
-
-    lua.pushcfunction(L, lua_randomnormal)
-    lua.setfield(L, -2, "normal")
-
-
-    lua.pushcfunction(L, lua_randompareto)
-    lua.setfield(L, -2, "pareto")
-
-    lua.pushcfunction(L, lua_randomi63)
-    lua.setfield(L, -2, "i63")
-
-    lua.pushcfunction(L, lua_randomu32)
-    lua.setfield(L, -2, "u32")
-
-    lua.pushcfunction(L, lua_randomu64)
-    lua.setfield(L, -2, "u64")
-
-    lua.pushcfunction(L, lua_shufflearray)
-    lua.setfield(L, -2, "shufflearray")
+    lua.pushcfunction(L, lua_perlin )
+    lua.setfield(L, -2, "perlin")
 
 }
 

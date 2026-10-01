@@ -1,4 +1,4 @@
--- main.lua
+-- Generate checkerboard image
 
 local draw_ = require("drawing")
 local window = require("window")
@@ -7,7 +7,7 @@ local image = require("image")
 local shapes_ = require("shapes")
 local texture = require("texture")
 
-function init()
+local function init()
 
 
     local width = 1280
@@ -25,16 +25,13 @@ function init()
 
 end
 
-function update()
 
-
-
-end
-
-function draw()
+local function draw()
 
 
     draw_.clear_background(color.BLACK)
     texture.draw(Text_, P1)
 
 end
+
+return {init,draw}

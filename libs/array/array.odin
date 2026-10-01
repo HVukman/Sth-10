@@ -16,6 +16,10 @@ array :: struct {
     data: [^]f64,  // Raw pointer for faster access
 }
 
+intarray :: struct {
+    size: int,
+    data: [^]i32,
+}
 
 array_newindex :: proc "c" (L: ^lua.State ) -> i32 {
 
@@ -108,20 +112,6 @@ array_meta := []lua.L_Reg{
     {nil, nil},
 }
 
-arraylib := []lua.L_Reg{
-    {"new",  luaarray_new},
-    {"array_change",  array_change},
-    {nil, nil},
-}
-
-array_delete :: proc "c" (L: ^lua.State) -> i32 {
-
-	context = runtime.default_context()
-	a := cast(^array)lua.touserdata(L, 1)
-    free(a.data)
-	return 0
-}
-
 luaarray_new :: proc "c" (L: ^lua.State) -> i32 {
 
 	context = runtime.default_context()
@@ -136,11 +126,77 @@ luaarray_new :: proc "c" (L: ^lua.State) -> i32 {
 	return 1
 }
 
+
+array_delete :: proc "c" (L: ^lua.State) -> i32 {
+
+	context = runtime.default_context()
+	a := cast(^array)lua.touserdata(L, 1)
+    free(a.data)
+	return 0
+}
+
+// linspace (a,b)
+// or linspace (a,b,c)
+lua_linspace :: proc "c" (L: ^lua.State) -> i32 {
+
+	context = runtime.default_context()
+	len : int
+	n := f64(lua.L_checknumber(L, 1))
+	n2 := f64(lua.L_checknumber(L, 2))
+
+	n3 := lua.isnoneornil(L,3)
+
+	if !(n3){
+		len = int(lua.L_checknumber(L,3))
+	}else{
+		len = 100
+	}
+
+    nbytes :uint= uint(size_of(array) + (len - 1) * size_of(f64))
+
+    a := cast(^array)lua.newuserdata(L, nbytes)
+    a.data = make([^]f64, len)
+
+    diff := (n2-n)/f64(len)
+    a.size= len
+
+    a.data[0] = n
+    a.data[len-1] = n2
+    for i:=1;i<len-1;i+=1{
+    	a.data[i] = a.data[i-1] + diff
+    }
+    // userdata is already on the Lua stack
+	lua.L_setmetatable(L, "array")
+	return 1
+}
+
+
+arraylib := []lua.L_Reg{
+    {"new",  luaarray_new},
+    {"newint",  lua_int_array_new },
+    {"linspace",  lua_linspace },
+    {"array_change",  array_change},
+    {"intarray_change",  lua_int_array_change},
+    {nil, nil},
+}
+
+
+
+
+
+
 luaarray_open :: proc "c" (L: ^lua.State) -> i32 {
 
 	context = runtime.default_context()
+
 	lua.L_newmetatable(L, "array")
 	lua.L_setfuncs(L, raw_data(array_meta), 0)
-	lua.L_newlib(L, arraylib)
+
+	lua.L_newmetatable(L, "IntArrayMT")
+	lua.L_setfuncs(L, raw_data(int_meta ), 0)
+
+
+    lua.L_newlib(L, arraylib)
+
 	return 1
 }

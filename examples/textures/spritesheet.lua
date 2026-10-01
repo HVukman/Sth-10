@@ -7,7 +7,7 @@ local image = require("image")
 local shapes_ = require("shapes")
 local texture = require("texture")
 
-function init()
+local function init()
 
 
     local width = 640
@@ -26,16 +26,13 @@ function init()
 
 end
 
-function update()
 
-
-
-end
-
-function draw()
+local function draw()
 
 
     draw_.clear_background(color.BLACK)
     texture.draw_as_spritesheet(Text_, 0, P1, 32,32) -- draw sprite 0 in sheet width, heigth 32
     texture.draw_as_spritesheet(Text_, 1, P2) -- draw sprite 1 in sheet width, heigth 32 as standard
 end
+
+return {init,draw}

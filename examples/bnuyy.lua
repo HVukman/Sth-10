@@ -12,11 +12,9 @@ local limit = 100000
 local ax = array.new(limit)
 local ay = array.new(limit)
 
-local mousex  = 0
-local mousey  = 0
-
 local Text_
 local P1     = shapes_.newpoint(1, 1)
+local R1    = shapes_.newrectangle(1, 1, 80, 30)
 
 local function init()
 
@@ -47,6 +45,7 @@ local function draw()
         local P = shapes_.newpoint(ax[i], ay[i])
         texture.draw(Text_, P)
     end
+    draw_.rectangle(R1, color.BLACK)
     text.draw_fps(P1)
 end
 

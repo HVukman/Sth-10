@@ -1,16 +1,17 @@
 -- bnuyy2.lua
+-- lighttexture
 local shapes_ = require("shapes")
 local color = require("colors")
 local draw_ = require("drawing")
 local window = require("window")
-local texture2 = require("texture2")
+local lighttexture = require("lighttexture")
 local array = require("array")
 local text   = require("text")
 
-
+local R1 = shapes_.newrectangle(1, 1, 80, 30)
 local limit = 100000
-local ax = array.new(limit)
-local ay = array.new(limit)
+local ax = array.newint(limit)
+local ay = array.newint(limit)
 
 
 local Text_
@@ -32,7 +33,7 @@ local function init()
     window.set_width_height(width,height)
 
 
-    Text_ = texture2.load_texture_handle("examples/resources/bunny.png")
+    Text_ = lighttexture.load_texture("examples/resources/bunny.png")
 
 
 end
@@ -40,8 +41,9 @@ end
 local function draw()
     draw_.clear_background(color.BLACK)
     for i = 1, (limit) do
-        texture2.draw_texture_handle(Text_, ax[i], ay[i])
+        lighttexture.draw_texture(Text_, ax[i], ay[i])
     end
+     draw_.rectangle(R1, color.BLACK)
     text.draw_fps(P1)
 end
 
